@@ -1094,7 +1094,7 @@ void TSimulation::ReadSeedFilePaths()
 		exit( 1 );
 	}
 
-	SYSTEM( "cp genomeSeeds.txt run/genome" );
+	SYSTEM( "mkdir -p run/genome; cp genomeSeeds.txt run/genome" ); //jasonayoder fixed according to Sean's instructions
 
 	char buf[1024 * 4];
 	while( !in.eof() )
@@ -5129,7 +5129,7 @@ int TSimulation::getRandomPatch( int domainNumber )
 	// attainable by those patches that are on, and therefore allowed to grow food
 	for( short i = 0; i < fDomains[domainNumber].numFoodPatches; i++ )
 		if( fDomains[domainNumber].fFoodPatches[i].isOn() )
-			maxFractions += fDomains[domainNumber].fFoodPatches[i].fraction;
+			maxFractions += fDomains[domainNumber].fFoodPatches[i].getFoodFraction(); //jasoyode dyn foodFraction
 
 	if( maxFractions > 0.0 )	// there is an active patch in this domain
 	{
@@ -5143,7 +5143,7 @@ int TSimulation::getRandomPatch( int domainNumber )
 		{
 			if( fDomains[domainNumber].fFoodPatches[i].isOn() )
 			{
-				sumFractions += fDomains[domainNumber].fFoodPatches[i].fraction;
+				sumFractions += fDomains[domainNumber].fFoodPatches[i].getFoodFraction(); //jasoyode dyn foodFraction
 				if( ranval <= sumFractions )
 					return( i );    // this is the patch
 			}

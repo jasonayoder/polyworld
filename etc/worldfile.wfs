@@ -577,6 +577,8 @@ Domains {
               type    Float
               exmin   0.0
               max     1.0
+              default 0.01                       #jasonayoder dyn foodFraction -needed?
+              cppsym  "$[ancestor].foodFraction" #jasonayoder dyn foodFraction
             }
 
             InitFoodFraction {
@@ -1522,6 +1524,202 @@ SynapseFromOutputNeurons {
 
 
 #-------------------------------------------------------------------
+# SECTION Expanded Neuron Genetics
+#-------------------------------------------------------------------
+
+GeneticNeuronType {
+  type    Bool   
+  default False
+}
+
+GeneticNeuronPosition {
+  type    Bool 
+  default False
+}
+
+#-------------------------------------------------------------------
+# SECTION Gasnets Parameters
+#-------------------------------------------------------------------
+
+#Should turn off/on all other settings
+GasnetsEnabled {
+  type    Bool
+  default False
+}
+
+GasnetsReceptors {
+  type    Bool
+  default False
+}
+
+#percentage of neurons activated by gas
+#standard network include zero
+GasnetsGasActivationPercentage {
+  type    Float
+  default 0.0
+  min     0
+}
+
+
+DiscreteReceptorStrength {
+  type    Bool
+  default True
+}
+
+
+# Total number of different gases that can exist in brain
+# Should be a multiple of 2 for +/- effect on neural activity
+GasnetsNumGases {
+  type    Int
+  default 2
+  min     2
+}
+
+
+# Used to determine which modulatory effect is present
+# For instance with only two gases, this will determine which
+# Form of modulation will be present
+# If we to define this if we want to potentially include more
+# modulation forms. N! (factorial) permutations, so keep to 4 or less
+GasnetsModulationTypeOrder {
+  type    Enum
+  default ActPla
+  enum    Values {
+    ActPla,
+    PlaAct 
+  }
+}  
+   
+   
+#-------------------------------------------------------------------
+# SUB-SECTION Gasnets Global Mode Parameters
+#-------------------------------------------------------------------
+
+#Simplified model where there is only a global flat concentration, no gas channels
+GasnetsGlobalFlatMode {
+  type    Bool
+  default False
+}
+ 
+#Only used with GasnetsGlobalFlatMode
+GasnetsDecayRate {
+  type    Float   
+  default 0.05    
+  min     0       
+}
+
+#-------------------------------------------------------------------
+# SUB-SECTION Gasnets Local Mode Parameters
+#-------------------------------------------------------------------
+
+#used with GasnetsGeneticRadius
+GasnetsRadiusMin { #3d spatial distance radius of effect
+  type    Float
+  default 0.05 
+  min     0.0001
+}
+ 
+#Used as default radius when GasnetsGeneticRadius is False
+GasnetsRadiusMax {
+  type    Float   
+  default 0.1     
+  min     GasnetsRadiusMin
+}
+ 
+#Used to determine the emission that can be sent at close proximity
+GasnetsMinEmissionRate {
+  type    Float
+  default 0.0  
+  min     0.0  
+}
+ 
+#Used to determine the emission that can be sent at close proximity
+GasnetsMaxEmissionRate {
+  type    Float
+  default 0.2  
+  min     GasnetsMinEmissionRate
+}
+ 
+#the combination of GasnetsRadiusMax / GasnetsDistancePerTimestep will determine gaschannel array size
+GasnetsDistancePerTimestep { 
+  type    Float
+  default 0.005
+  min     0.00001
+}
+ 
+GasnetsConcentrationGradient {
+  type    Bool
+  default True
+}
+
+#Determines if emission rate increases in discrete chunks, or
+GasnetsDiscreteEmissionBuildup {
+  type    Bool
+  default True
+}
+ 
+#determines if the neuron just goes over a threshold or is based on individual neuron's biases
+#When true makes the threshold be equal to   (bias + (GasnetsFiringRateThreshold * (1 - bias)))
+#This is not what it initially seemed and is probably worth removing, or repurposing
+GasnetsFiringRateThresholdBiasBased {
+  type    Bool
+  default False
+}
+ 
+#set to be negative 1 if you want to use
+GasnetsFiringRateThreshold {
+  type    Float
+  default 0.5  
+  min     0.0  
+}
+ 
+###########################
+# Debug mode for gasnets  #
+###########################
+# 0 = no prints
+# 1 = only at start of simulation
+# 2 = only one line for each agent's birth
+# 3 = repeated lines at each agent's birth
+# 4 = one line each timestep for each agent
+# 5 = repeated lines for each agent for each time step
+# 6 = information overload! everything that can be printed!
+GasnetsDebugMode {
+  type    Int
+  default 0  
+  min     0  
+}
+
+###########################
+# Possible Future Params  #
+###########################
+
+GasnetsNeuromodulationTypes { #can make these positive/negative if desired...
+  type    Enum
+  default NA  
+  enum    Values {
+    NA,            # Neural Activation Modulation
+    SP,            # Synaptic Plasticity Modulation
+    PT             # Probability of Transmission Modulation
+  }
+}  
+   
+   
+#TODO/FIXME not used: number of different gases that can be produced by one neuron
+GasnetsNeuronGasGenerationMin { 
+  type    Int
+  default 1  
+  min     1  
+}
+ 
+#TODO/FIXME not used: number of different gases that can be produced by one neuron
+GasnetsNeuronGasGenerationMax { 
+  type    Int
+  default 1  
+  min     GasnetsNeuronGasGenerationMin
+}
+
+
+#-------------------------------------------------------------------
 # SECTION Simulation parameters -- Gene Options
 #-------------------------------------------------------------------
 
@@ -2383,7 +2581,12 @@ AdamiComplexityRecordFrequency {
 }
 
 RecordGenomes {
-  type    Bool
+  type    Enum  #  jasonayoder  - type    Bool 1/26/2014 record last generation from sean
+  enum    Values {
+    False,
+    True,
+    SimEnd
+  }
   default RecordAll
 }
 

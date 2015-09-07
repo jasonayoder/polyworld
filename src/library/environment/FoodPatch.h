@@ -43,6 +43,7 @@ class FoodPatch : public Patch
 
 	bool isOn();
 	bool isOnChanged();
+	float getFoodFraction(); //jasoyode dyn foodFraction
 	void endStep();
 
 	float growthRate;
@@ -53,7 +54,7 @@ class FoodPatch : public Patch
 	int maxFoodCount;
 	int maxFoodGrownCount;
 
-	float fraction;    
+	//float fraction;    //jasoyode dyn foodFraction
 	float foodRate;
 
 	bool removeFood;
@@ -62,6 +63,7 @@ class FoodPatch : public Patch
  private:
 	bool on;
 	bool onPrev;
+	float foodFraction; //jasoyode dyn foodFraction
 	const FoodType *foodType;
 };
 

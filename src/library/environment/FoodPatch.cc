@@ -35,7 +35,7 @@ void FoodPatch::init( const FoodType *foodType, float x, float z, float sx, floa
     
 	initBase(x, z,  sx, sz, shape, distrib, nhsize, fs, dm, domainNumber);
 
-	fraction = patchFraction;
+	this->foodFraction = patchFraction; //jasoyode dyn foodFraction
 	growthRate = rate;
  	initFoodCount = initFood;
 	foodCount = 0;
@@ -54,7 +54,7 @@ void FoodPatch::init( const FoodType *foodType, float x, float z, float sx, floa
 #if DebugFoodPatches
 	if( patchFraction > 0.0 )
 		printf( "initing FOOD patch at (%.2f, %.2f) with size (%.2f, %.2f), frac=%g, init=%d, min=%d, max=%d, maxGrow=%d, removeFood=%d\n",
-				startX, startZ, sizeX, sizeZ, fraction, initFoodCount, minFoodCount, maxFoodCount, maxFoodGrownCount, removeFood );
+				startX, startZ, sizeX, sizeZ, this->foodFraction, initFoodCount, minFoodCount, maxFoodCount, maxFoodGrownCount, removeFood ); //jasoyode dyn foodFraction
 	else
 		printf( "initing FOOD patch at (%.2f, %.2f) with size (%.2f, %.2f), removeFood=%d; limits to be determined\n",
 				startX, startZ, sizeX, sizeZ, removeFood );
@@ -71,10 +71,10 @@ void FoodPatch::setInitCounts( int initFood, int minFood, int maxFood, int maxFo
 	minFoodCount = minFood;
 	maxFoodCount = maxFood;
 	maxFoodGrownCount = maxFoodGrown;
-	fraction = newFraction;
+	this->foodFraction = newFraction; //jasoyode dyn foodFraction
 #if DebugFoodPatches
 	printf( "setting limits for FOOD patch at (%.2f, %.2f) with size (%.2f, %.2f) to frac=%g, init=%d, min=%d, max=%d, maxGrow=%d\n",
-			startX, startZ, sizeX, sizeZ, fraction, initFoodCount, minFoodCount, maxFoodCount, maxFoodGrownCount );
+			startX, startZ, sizeX, sizeZ, this->foodFraction, initFoodCount, minFoodCount, maxFoodCount, maxFoodGrownCount ); //jasoyode dyn foodFraction
 #endif
 }
 
@@ -130,6 +130,14 @@ food *FoodPatch::addFood( long step )
 #endif
 	
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------------
+// FoodPatch::getFoodFraction
+//-------------------------------------------------------------------------------------------
+float FoodPatch::getFoodFraction()
+{
+	return foodFraction;
 }
 
 //-------------------------------------------------------------------------------------------

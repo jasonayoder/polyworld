@@ -614,6 +614,18 @@ void agent::grow( long mateWait )
 		            * (agent::config.minSizePenalty + size_rel) * (agent::config.maxSizePenalty - 1.0)
 					/ (agent::config.maxAgentSize - agent::config.minAgentSize);
     
+    
+    //jasoyode - debug energy cost
+    //    if (fSpeed2Energy == 0 ) {
+    //        cout << "Agents moving without any energy cost!";
+    //        cout << fSpeed2Energy << " fSpeed2Energy\n";    
+    //        cout << size_rel << " size_rel \n";
+    //        cout << agent::config.speed2Energy <<" config.speed2Energy\n";
+    //        cout << agent::config.minSizePenalty<< " agent::config.minSizePenalty \n";
+    //    }
+    
+    
+    
 	// Note: gMinSizePenalty can be used to prevent size_rel==0 from giving
 	// the agents "free" yaw.
     fYaw2Energy = agent::config.yaw2Energy * geneCache.maxSpeed
