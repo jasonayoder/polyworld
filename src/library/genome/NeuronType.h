@@ -10,7 +10,8 @@ namespace genome
 	enum NeuronType
 	{
 		INHIBITORY,
-		EXCITATORY
+		EXCITATORY,
+		MODULATORY //GAS1, GAS2, GAS3, etc TOFIX jasonayoder 9-9-2014?
 	};
 
 }

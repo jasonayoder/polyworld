@@ -1,9 +1,9 @@
-#include "GroupsGenomeSchema.h"
+#include "genome/groups/GroupsGenomeSchema.h"
 
-#include "GroupsGenome.h"
 #include "agent/agent.h"
-#include "brain/groups/GroupsBrain.h"
 #include "sim/globals.h"
+#include "brain/groups/GroupsBrain.h"
+#include "genome/groups/GroupsGenome.h"
 
 using namespace genome;
 

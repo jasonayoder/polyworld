@@ -1,10 +1,9 @@
 #pragma once
 
 #include <gl.h>
-
 #include "brain/Nerve.h"
-#include "brain/NeuralNetRenderer.h"
 #include "genome/groups/GroupsGenome.h"
+#include "brain/NeuralNetRenderer.h"
 
 template <typename T_neuronModel>
 class GroupsNeuralNetRenderer : public NeuralNetRenderer

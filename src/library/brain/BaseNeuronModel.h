@@ -6,14 +6,14 @@
 #include <string.h>
 #include <strings.h>
 
-#include "Brain.h"
-#include "NervousSystem.h"
-#include "NeuronModel.h"
 #include "sim/globals.h"
 #include "utils/AbstractFile.h"
 #include "utils/misc.h"
+#include "Brain.h"
+#include "NervousSystem.h"
+#include "NeuronModel.h"
 
-template <typename T_neuron, typename T_neuronattrs, typename T_synapse>
+template <typename T_neuron, typename T_neuronattrs, typename T_synapse, typename T_gaschannel>
 class BaseNeuronModel : public NeuronModel
 {
  public:
@@ -25,6 +25,12 @@ class BaseNeuronModel : public NeuronModel
 		neuronactivation = NULL;
 		newneuronactivation = NULL;
 		synapse = NULL;
+		
+		neurongasesconcentrations = NULL;	//gas
+		target_gaschannels = NULL;			//gas
+		source_gaschannels = NULL;			//gas
+		
+		
 
 #if PrintBrain
 		bprinted = false;
@@ -36,7 +42,13 @@ class BaseNeuronModel : public NeuronModel
 		free( neuron );
 		free( neuronactivation );
 		free( newneuronactivation );
+		
+		free (neurongasesconcentrations);
+		
 		free( synapse );
+        free( target_gaschannels );
+        free( source_gaschannels );
+        
 	}
 
 	virtual void init_derived( float initial_activation ) = 0;
@@ -45,31 +57,74 @@ class BaseNeuronModel : public NeuronModel
 					   float initial_activation )
 	{
 		this->dims = dims;
-
+		
+		if (Brain::config.gasnetsDebugMode > 1) { 
+		    cout << "  GasnetsDebugMode[2]: " ;
+    		cout << "Brain created with dims->numGasChannels: " << dims->numGasChannels << "\n";
+        }
+		
 #define __ALLOC(NAME, TYPE, N) if(NAME) free(NAME); NAME = (TYPE *)calloc(N, sizeof(TYPE)); assert(NAME);
 
 		__ALLOC( neuron, T_neuron, dims->numNeurons );
 		__ALLOC( neuronactivation, float, dims->numNeurons );
 		__ALLOC( newneuronactivation, float, dims->numNeurons );
-
 		__ALLOC( synapse, T_synapse, dims->numSynapses );
+		
+		__ALLOC( target_gaschannels, T_gaschannel, dims->numGasChannels ); //gasnets  ZERO this results in a segfault down the line - only if youi don't add gaschannels
+		__ALLOC( source_gaschannels, T_gaschannel, dims->numGasChannels ); //gasnets  ZERO this results in a segfault down the line - only if youi don't add gaschannels
+		
 
 #undef __ALLOC
+
+
+        // Allocate space for 3d array of neuron gas concentrations
+        // neurongasconcentrations[neuron][gas][timestep]  
+        // Where gas is index between 0 and *gasnetsNumGases* for gas type and timestep is from 0 to *gasnetsGasChannelSize*
+        // and reflects the amount of gas ON THE WAY from various gas channels
+        //segfault/free pointer area of concern
+        //Imitated other code and follow tutorials online
+        
+        if (Brain::config.gasnetsEnabled) {
+        
+            int numberGases = Brain::config.gasnetsNumGases; 
+            int maxLengthGasChannel = Brain::config.gasnetsGasChannelSize; 
+        
+            if (neurongasesconcentrations) {
+                free(neurongasesconcentrations);
+            }
+        
+            neurongasesconcentrations = (float *** )calloc(dims->numNeurons, sizeof(float **));
+            for (int n = 0; n < dims->numNeurons; n++) {
+                neurongasesconcentrations[n] = (float **)calloc(numberGases, sizeof(float *));
+                for(int i = 0; i < numberGases; i++) { 
+                   neurongasesconcentrations[n][i] = (float *)calloc(maxLengthGasChannel, sizeof(float));
+                }
+            }
+        }
 
 		citfor( NervousSystem::NerveList, cns->getNerves(), it )
 		{
 			Nerve *nerve = *it;
 
-			nerve->config( &(this->neuronactivation), &(this->newneuronactivation) );
+			nerve->config( &(this->neuronactivation), &(this->newneuronactivation) );  //not needed for gaschannels
 		}		
 
 		init_derived( initial_activation );
+		
 	}
 
 	virtual void set_neuron( int index,
 							 void *attributes,
 							 int startsynapses,
-							 int endsynapses )
+							 int endsynapses,
+							 int type,					//gasnets
+							 float receptorStrength,  	//gasnets
+							 float emissionRate,		//gasnets
+							 int activatedByGas,		//gasnets
+							 int startTargetGaschannels,//gaschannel
+							 int endTargetGaschannels,	//gasnets
+							 int startSourceGaschannels,//gasnets
+							 int endSourceGaschannels)	//gaschannel
 	{
 		T_neuron &n = neuron[index];
 		T_neuronattrs *attrs = (T_neuronattrs *)attributes;
@@ -77,8 +132,21 @@ class BaseNeuronModel : public NeuronModel
 		assert( !isnan(attrs->bias) );
 
 		n.bias = attrs->bias;
-		n.startsynapses = startsynapses;
+		
+		n.type = type;								  	//gasnets
+		n.receptorStrength = attrs->receptorStrength;	//gasnets
+		n.emissionRate = attrs->emissionRate;		   	//gasnets
+		n.emissionRadius = attrs->emissionRadius;		//gasnets
+		n.activatedByGas = attrs->activatedByGas;		//gasnets
+		
+		n.startsynapses = startsynapses;			  
 		n.endsynapses = endsynapses;
+		
+		n.startTargetGaschannels = startTargetGaschannels; 	//gaschannel
+		n.endTargetGaschannels = endTargetGaschannels;		//gaschannel
+		n.startSourceGaschannels = startSourceGaschannels; 	//gaschannel
+		n.endSourceGaschannels = endSourceGaschannels;		//gaschannel
+		
 
 #if DebugBrainGrow
 		if( DebugBrainGrowPrint )
@@ -96,6 +164,66 @@ class BaseNeuronModel : public NeuronModel
 
 		n.endsynapses = endsynapses;
 	}
+	
+	//gaschannel 
+	virtual void set_neuron_end_target_gaschannels( int index,
+										 int endTargetGaschannels )
+	{
+		T_neuron &n = neuron[index];
+
+		n.endTargetGaschannels = endTargetGaschannels;
+	}
+
+
+	//gaschannel 
+	virtual void set_neuron_end_source_gaschannels( int index,
+										 int endSourceGaschannels )
+	{
+		T_neuron &n = neuron[index];
+
+		n.endSourceGaschannels = endSourceGaschannels;
+	}	
+	
+	
+	
+	//gaschannel
+	virtual void set_target_gaschannel(int index,
+	                            int from, 
+	                            int to,
+	                            int length ) { //TODO FIXME gasnet length parameter necessary? - possibly add distance here instead
+	
+      T_gaschannel &g = target_gaschannels[index];
+
+      //Will segfault here if the size is not set properly at the top of this file
+      g.fromneuron = from;
+      g.toneuron = to;
+      g.length = length;
+      
+	}
+	
+	
+	//gaschannel
+	virtual void set_source_gaschannel(int index,
+	                            int from, 
+	                            int to,
+	                            int length ) { //TODO FIXME gasnet length parameter necessary? - possibly add distance here instea
+	
+      T_gaschannel &g = source_gaschannels[index];
+
+      //Will segfault here if the size is not set properly at the top of this file
+      g.fromneuron = from;
+      g.toneuron = to;
+      g.length = length;
+      
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 
 	virtual void set_synapse( int index,
 							  int from,
@@ -208,7 +336,7 @@ class BaseNeuronModel : public NeuronModel
 			file->printf( "%d %g\n", i, neuronactivation[i] );
 		}
 	}
-
+	
 	//protected:
 	NervousSystem *cns;
 	Dimensions *dims;
@@ -216,9 +344,15 @@ class BaseNeuronModel : public NeuronModel
 	T_neuron *neuron;
 	float *neuronactivation;
 	float *newneuronactivation;
-	T_synapse *synapse;
+	
+	float ***neurongasesconcentrations;		//gas
+	T_synapse *synapse;						//gas
+	T_gaschannel *target_gaschannels;		//gas
+	T_gaschannel *source_gaschannels;		//gas
 
 #if PrintBrain
 	bool bprinted;
 #endif
+
 };
+

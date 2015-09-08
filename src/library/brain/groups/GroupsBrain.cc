@@ -1,14 +1,14 @@
-#include "GroupsBrain.h"
+#include "brain/groups/GroupsBrain.h"
 
-#include "GroupsNeuralNetRenderer.h"
 #include "agent/agent.h"
-#include "brain/FiringRateModel.h"
-#include "brain/NervousSystem.h"
-#include "brain/SpikingModel.h"
-#include "genome/groups/GroupsGenome.h"
-#include "sim/globals.h"
 #include "utils/error.h"
+#include "brain/FiringRateModel.h"
+#include "sim/globals.h"
+#include "genome/groups/GroupsGenome.h"
+#include "brain/groups/GroupsNeuralNetRenderer.h"
+#include "brain/NervousSystem.h"
 #include "utils/RandomNumberGenerator.h"
+#include "brain/SpikingModel.h"
 
 using namespace genome;
 
@@ -19,7 +19,7 @@ static float initminweight = 0.0; // could read this in
 #define IsInternalNeuralGroup( group ) ( _genome->getSchema()->getNeurGroupType(group) == NGT_INTERNAL )
 
 
-#define __ALLOC_STACK_BUFFER(NAME, TYPE, N) TYPE *NAME = (TYPE *)alloca( N * sizeof(TYPE) );
+#define __ALLOC_STACK_BUFFER(NAME, TYPE, N) TYPE *NAME = (TYPE *)alloca( N * sizeof(TYPE) ); //Q_CHECK_PTR(NAME)
 #define ALLOC_STACK_BUFFER(NAME, TYPE) __ALLOC_STACK_BUFFER( NAME, TYPE, __numgroups )
 
 #define ALLOC_GROW_STACK_BUFFERS()										\
@@ -29,7 +29,12 @@ static float initminweight = 0.0; // could read this in
 	ALLOC_STACK_BUFFER( eeremainder, float );							\
 	ALLOC_STACK_BUFFER( eiremainder, float );							\
 	ALLOC_STACK_BUFFER( iiremainder, float );							\
-	ALLOC_STACK_BUFFER( ieremainder, float )
+	ALLOC_STACK_BUFFER( ieremainder, float );							\
+	__ALLOC_STACK_BUFFER( neurused,										\
+						  bool,											\
+						  max(GroupsBrain::config.maxeneurpergroup,		\
+							  GroupsBrain::config.maxineurpergroup) )
+
 
 GroupsBrain::Configuration GroupsBrain::config;
 
@@ -80,11 +85,11 @@ void GroupsBrain::init()
 
 	int numoutneurgroups = 7;
 	if( agent::config.yawEncoding == agent::YE_OPPOSE )
-		numoutneurgroups++;
-	if( agent::config.enableVisionPitch )
-		numoutneurgroups++;
-	if( agent::config.enableVisionYaw )
-		numoutneurgroups++;
+        numoutneurgroups++;
+    if( agent::config.enableVisionPitch )
+        numoutneurgroups++;
+    if( agent::config.enableVisionYaw )
+        numoutneurgroups++;	
 	if( agent::config.enableGive )
 		numoutneurgroups++;
 	if( agent::config.enableCarry )
@@ -419,7 +424,7 @@ void GroupsBrain::grow()
     {
         for (int j = 0; j < _genome->getNeuronCount(EXCITATORY, i); j++, ineur++)
         {
-			_neuralnet->set_neuron( ineur, neuronAttrs.opaque );
+			_neuralnet->set_neuron( ineur, neuronAttrs.opaque, 1 ); //jasonayoder
         }
     }
 

@@ -11,7 +11,6 @@
 #include "proplib/proplib.h"
 #include "utils/objectlist.h"
 
-
 #define DebugBrainGrow false
 #if DebugBrainGrow
 	extern bool DebugBrainGrowPrint;
@@ -82,6 +81,7 @@ public:
 		float maxbias;
 		bool outputSynapseLearning;
 		bool synapseFromOutputNeurons;
+        
 		long numPrebirthCycles;
 		float logisticSlope;
 		float maxWeight;
@@ -92,6 +92,43 @@ public:
 		short minWin;
 		short retinaWidth;
 		short retinaHeight;
+		
+		//Added genetic parameters for neurons
+		bool geneticNeuronType;
+		bool geneticNeuronPosition;
+		
+		/*
+		* <Gasnets variables
+		*/
+		bool gasnetsEnabled;
+		bool gasnetsGlobalFlatMode;
+		bool gasnetsConcentrationGradient;
+		bool gasnetsDiscreteEmissionBuildup;
+        bool gasnetsFiringRateThresholdBiasBased;
+        bool gasnetsDiscreteReceptorStrength;
+        float gasnetsMinEmissionRate;
+        float gasnetsMaxEmissionRate;
+        float gasnetsGasActivationPercentage;
+		float gasnetsFiringRateThreshold;
+		float gasnetsRadiusMin;
+		float gasnetsRadiusMax;
+		float gasnetsDecayRate;
+		bool gasnetsReceptors;
+		short gasnetsNeuronGasGenerationMin;
+		short gasnetsNeuronGasGenerationMax;
+		short gasnetsNumGases;
+		float gasnetsDistancePerTimestep;
+		short gasnetsGasChannelSize;
+		short gasnetsDebugMode;
+		enum 
+        {   
+            ActPla,
+            PlaAct 
+        } gasnetsModulationTypeOrder;
+		/*
+		* Gasnets variables>
+		*/
+		
 		float maxsynapse2energy; // (amount if all synapses usable)
 		float maxneuron2energy;
 	} config;
@@ -110,7 +147,8 @@ public:
     float getEnergyUse();
     short getNumNeurons();
 	long  getNumSynapses();
-        
+	long  getNumGasChannels(); //gaschannel
+	
 	void dumpAnatomical( AbstractFile *file, long index, float fitness );
 	
 	void startFunctional( AbstractFile *file, long index );
@@ -133,5 +171,6 @@ protected:
 inline float Brain::getEnergyUse() { return _energyUse; }
 inline short Brain::getNumNeurons() { return _dims.numNeurons; }
 inline long Brain::getNumSynapses() { return _dims.numSynapses; }
+inline long Brain::getNumGasChannels() { return _dims.numGasChannels; } //gaschannels
 
 // Macros

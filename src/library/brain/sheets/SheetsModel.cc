@@ -1,4 +1,4 @@
-#include "SheetsModel.h"
+#include "brain/sheets/SheetsModel.h"
 
 #include <stdlib.h>
 
@@ -27,7 +27,7 @@ namespace sheets
 // Neuron
 //===========================================================================
 
-bool NeuronKeyCompare::operator()( Neuron *x, Neuron *y ) const
+bool NeuronKeyCompare::operator()( Neuron *x, Neuron *y ) 
 {
 	return x->nonCulledId < y->nonCulledId;
 }
@@ -39,6 +39,10 @@ Neuron::~Neuron()
 {
 	itfor( SynapseMap, synapsesOut, it )
 		delete it->second;
+		
+	itfor( GasChannelMap, gasChannelsOut, it )
+	        delete it->second;
+	
 }
 
 //===========================================================================
@@ -174,6 +178,10 @@ const Vector2i &Sheet::getNeuronCount()
 //---------------------------------------------------------------------------
 Neuron *Sheet::getNeuron( int a, int b )
 {
+	//cout << "a: " << a <<"\n";
+	//cout << "_neuronCount.a: " << _neuronCount.a <<"\n";
+	
+
 	assert( a < _neuronCount.a );
 	assert( a >= 0 );
 	assert( b < _neuronCount.b );
@@ -237,9 +245,10 @@ void Sheet::addReceptiveField( ReceptiveFieldRole role,
 	{
 		Neuron *currentNeuron = getNeuron( currentNeuronIndex );
 
-		if( !neuronPredicate(currentNeuron, currentNeuronRole) )
+		if( !neuronPredicate(currentNeuron, currentNeuronRole) ) 
 			continue;
-
+		
+		
 		// ---
 		// --- Find all neurons within the receptive field.
 		// ---
@@ -273,7 +282,7 @@ void Sheet::addReceptiveField( ReceptiveFieldRole role,
 		Neuron *fieldNeurons[ constrainedReceptiveFieldNeurons.size() ];
 		int nfieldNeurons = 0;
 		float totalDistance = 0;
-
+		
 		for( Vector2i otherNeuronIndex : constrainedReceptiveFieldNeurons )
 		{
 			Neuron *otherNeuron = other->getNeuron( otherNeuronIndex );
@@ -282,9 +291,9 @@ void Sheet::addReceptiveField( ReceptiveFieldRole role,
 			if( currentNeuron == otherNeuron )
 				continue;
 
-			if( !neuronPredicate(otherNeuron, otherNeuronRole) )
+			if( !neuronPredicate(otherNeuron, otherNeuronRole) ) 
 				continue;
-
+			
 			fieldNeurons[ nfieldNeurons++ ] = otherNeuron;
 			totalDistance += currentNeuron->absPosition.distance( otherNeuron->absPosition );
 		}
@@ -317,9 +326,21 @@ void Sheet::addReceptiveField( ReceptiveFieldRole role,
 			{
 			case Source:
 				synapse = createSynapse( otherNeuron, currentNeuron );
+
+				//Should never have synapses originating at a modulatory neuron
+				if (otherNeuron->attrs.type > 2){
+					assert(false);
+				}
+				
 				break;
 			case Target:
 				synapse = createSynapse( currentNeuron, otherNeuron );
+				
+				//Should never have synapses originating at a modulatory neuron
+				if (currentNeuron->attrs.type > 2) {
+					assert(false);
+				}
+				
 				break;
 			default:
 				assert( false );
@@ -330,6 +351,101 @@ void Sheet::addReceptiveField( ReceptiveFieldRole role,
 		}
 	}
 }
+
+
+vector<Neuron*> Sheet::getNeuronsInGasRange(Neuron *origin) {
+	
+		float radius  = origin->attrs.emissionRadius;
+		float receptorStrengthLowerBound  = 0.1; //TODO -  GLOBAL CONSTANT for a lower bound on receptorStrength
+		
+		//used simply to access the distance between sheets - any neuron will do, since we just want it's planePos
+		Neuron *target  = getNeuron(0,0);
+		float neuronsDistanceFromSheet = 0;
+
+		switch( _orientation )
+            { 
+            case PlaneXY: 
+            	neuronsDistanceFromSheet = target->absPosition.z - origin->absPosition.z;
+            	break;
+            case PlaneXZ: 
+            	neuronsDistanceFromSheet = target->absPosition.y - origin->absPosition.y;
+            	break;
+            case PlaneZY: 
+            	neuronsDistanceFromSheet = target->absPosition.x - origin->absPosition.x;
+            	break;
+            default: 
+            	assert( false );
+            }		
+		
+		vector<Neuron*> inRangeNeurons;
+		
+		//only look at sheets that could have neurons within range of the originating gas-emitting neuron
+		if ( fabs(neuronsDistanceFromSheet) < radius) {
+		
+			for (int i = 0; i < _nneurons; i++) {
+				Neuron *otherNeuron = &_neurons[i];
+				
+				if (origin->absPosition.distance( otherNeuron->absPosition) < radius && origin != otherNeuron) {
+					if (otherNeuron->attrs.receptorStrength >= receptorStrengthLowerBound ) {
+						//meets all conditions to be included
+						inRangeNeurons.push_back( otherNeuron );
+						if (Brain::config.gasnetsDebugMode > 3) {
+					        cout << "     GasnetsDebugMode[4]: " ;
+							cout << "        radius: " << radius << "\n";
+							cout << "        origin->absPosition    : " << origin->absPosition << "\n";
+							cout << "        otherNeuron.absPosition: " << otherNeuron->absPosition << "\n";
+							cout << "        distance between: " << origin->absPosition.distance( otherNeuron->absPosition) << "\n";
+						}
+					}
+				}
+			}
+			
+			if (Brain::config.gasnetsDebugMode > 3) {
+				cout << "     GasnetsDebugMode[4]: " ;
+				cout << "Number of gas neurons in sheet within range: " << inRangeNeurons.size() << "\n";
+			}
+		}
+		return inRangeNeurons;
+}
+
+
+
+//---------------------------------------------------------------------------
+// Sheet::addGasChannels
+//---------------------------------------------------------------------------
+int Sheet::addGasChannels( Neuron *origin,
+							   SheetsModel *model)
+{
+
+	vector<Neuron*> inRangeNeuronsInAllSheets;
+	for (int i=0; i < model->_allSheets.size(); i++) {
+			
+		//this was the easiest data structure to use to do this, maybe there is a better way? //todo fixme
+		vector<Neuron*> inRangeNeurons = model->_allSheets[i]->getNeuronsInGasRange(origin);
+		
+		// Iterate over each neuron in range of this sheet's region.
+        for (int j=0; j< inRangeNeurons.size(); j++)
+		{
+			Neuron* currentNeuron = inRangeNeurons[j];
+			inRangeNeuronsInAllSheets.push_back(currentNeuron); //push pointer in vector of pointers
+		}
+		
+	}
+	
+	if (Brain::config.gasnetsDebugMode > 2) {
+        cout << "   GasnetsDebugMode[3]: " ;
+		cout << "  Number of Neurons in Range:" <<inRangeNeuronsInAllSheets.size() << "\n";
+	}
+	
+	for (int i=0; i< inRangeNeuronsInAllSheets.size(); i++) {
+	    Neuron* otherNeuron = inRangeNeuronsInAllSheets[i];
+	    createGasChannel( origin, otherNeuron );
+	}
+	
+	return inRangeNeuronsInAllSheets.size();
+
+}
+
 
 //---------------------------------------------------------------------------
 // Sheet::trim
@@ -378,7 +494,7 @@ void Sheet::createNeurons( function<void (Neuron*)> &neuronCreated )
 			neuron->sheetIndex.set( i, j );
 			neuron->cullState.touchedFromInput = false;
 			neuron->cullState.touchedFromOutput = false;
-
+			
 			// ---
 			// --- Compute position within sheet 
 			// ---
@@ -391,8 +507,10 @@ void Sheet::createNeurons( function<void (Neuron*)> &neuronCreated )
 			// --- Compute absolute 3D position within model
 			// ---
 
+
 			// Scale 2D position by sheet size
 			Vector2f position = neuron->sheetPosition;
+			
 			position.scale( _size );
 
 			// Translate by sheet location
@@ -401,14 +519,16 @@ void Sheet::createNeurons( function<void (Neuron*)> &neuronCreated )
 			// Create 3D position
 			neuron->absPosition.set( _orientation, position, _slot );
 
+
 			// Scale to model size.
 			neuron->absPosition.scale( _sheetsModel->getSize() );
-
+			
 			trc( "Neuron[" << i << "," << j << "]: sheetPos=" << neuron->sheetPosition << ", absPos=" << neuron->absPosition );
 
 			assert( neuron == getNeuron(neuron->sheetIndex) );
 
 			neuronCreated( neuron );
+			
 		}
 	}
 }
@@ -427,8 +547,8 @@ NeuronSubset Sheet::findNeurons( const Vector2f &center,
 	result._begin.a = max( 0, (int)ceilf( (ul.a - _neuronInsets.a) / _neuronSpacing.a ) );
 	result._end.a = min( _neuronCount.a - 1, (int)floorf( (lr.a - _neuronInsets.a) / _neuronSpacing.a ) );
 	result._begin.b = max( 0, (int)ceilf( (ul.b - _neuronInsets.b) / _neuronSpacing.b ) );
-	result._end.b = min( _neuronCount.b - 1, (int)floorf( (lr.b - _neuronInsets.b) / _neuronSpacing.b ) );
-
+	result._end.b =  min( _neuronCount.b - 1, (int)floorf( (lr.b - _neuronInsets.b) / _neuronSpacing.b ) );
+	
 	return result;
 }
 
@@ -462,6 +582,7 @@ NeuronSubset Sheet::findReceptiveFieldNeurons( const Vector2f &neuronPosition,
 	return findNeurons( center, fieldSize );
 }
 
+
 //---------------------------------------------------------------------------
 // Sheet::createSynapse
 //---------------------------------------------------------------------------
@@ -484,6 +605,33 @@ Synapse *Sheet::createSynapse( Neuron *from, Neuron *to )
 
 	return synapse;
 }
+
+//---------------------------------------------------------------------------
+// Sheet::createGasChannel
+//---------------------------------------------------------------------------
+GasChannel *Sheet::createGasChannel( Neuron *from, Neuron *to )
+{
+	if( from == to )
+		return NULL;
+
+	if( from->gasChannelsOut[to] != NULL )
+		return NULL;
+
+		
+	GasChannel *gasChannel = new GasChannel();
+	
+	gasChannel->from = from;
+	gasChannel->to = to;
+
+	from->gasChannelsOut[to] = gasChannel;
+	to->gasChannelsIn[from] = gasChannel;  
+
+	trc( "GasChannel [" << from->sheet->_id << "] " << from->absPosition << " --> [" << to->sheet->_id << "] " << to->absPosition );
+
+	return gasChannel;
+}
+
+
 
 
 //===========================================================================
@@ -667,6 +815,54 @@ void SheetsModel::touchFromOutput( Neuron *neuron )
 	}
 }
 
+
+//---------------------------------------------------------------------------
+// SheetsModel::removeNeuronSynapsesAndGasChannels
+//---------------------------------------------------------------------------
+void SheetsModel::removeNeuronSynapsesAndGasChannels( Neuron *neuron) 
+{
+	
+	trc( "CULLED: " << "[" << sheet->getId() << "] " << neuron->absPosition );
+
+	itfor( SynapseMap, neuron->synapsesIn, it_syn )
+	{
+		Synapse *syn = it_syn->second;
+		syn->from->synapsesOut.erase( neuron );
+		delete syn;
+	}
+	neuron->synapsesIn.clear();
+
+	itfor( SynapseMap, neuron->synapsesOut, it_syn )
+	{
+		Synapse *syn = it_syn->second;
+		syn->to->synapsesIn.erase( neuron );
+		delete syn;
+	}
+	neuron->synapsesOut.clear();
+
+	//GASCHANNEL DELETIONS
+	itfor( GasChannelMap, neuron->gasChannelsIn, it_gc )
+	{
+		GasChannel *gc = it_gc->second;
+		gc->from->gasChannelsOut.erase( neuron );
+		delete gc;
+	}
+	neuron->gasChannelsIn.clear();
+
+	itfor( GasChannelMap, neuron->gasChannelsOut, it_gc )
+	{
+		GasChannel *gc = it_gc->second;
+		gc->to->gasChannelsIn.erase( neuron );
+		delete gc;
+	}
+	neuron->gasChannelsOut.clear();
+
+}
+
+
+
+
+
 //---------------------------------------------------------------------------
 // SheetsModel::addNonCulledNeurons
 //---------------------------------------------------------------------------
@@ -681,30 +877,45 @@ void SheetsModel::addNonCulledNeurons( SheetVector &sheets )
 			for( int b = 0; b < count.b; b++ )
 			{
 				Neuron *neuron = sheet->getNeuron( a, b );
+				
+				//Unfortunately we do not know the gasChannel sizes (hence the culling on synapses)
+				//So we cannot necessarily cull every single possible neuron that might not be meaningful
+				//TODO - find a way to cull all possible neurons by using the incoming/outgoing gaschannels
 				if( neuron->cullState.touchedFromOutput && neuron->cullState.touchedFromInput )
 				{
 					neuron->id = (int)_neurons.size();
 					_neurons.push_back( neuron );
+					
 				}
-				else
+				else //at least one of the input/output was not culled
 				{
-					trc( "CULLED: " << "[" << sheet->getId() << "] " << neuron->absPosition );
-
-					itfor( SynapseMap, neuron->synapsesIn, it_syn )
-					{
-						Synapse *syn = it_syn->second;
-						syn->from->synapsesOut.erase( neuron );
-						delete syn;
+					if (Brain::config.gasnetsEnabled)  //gasnets enabled
+					{ 
+						bool isGasNeuron = neuron->attrs.type > 2; //irrelevant
+						bool isGasActivated = neuron->attrs.activatedByGas > 0.0;
+						
+						//if touched by input we can go ahead and add -no matter what
+						if (neuron->cullState.touchedFromInput) {
+						
+							neuron->id = (int)_neurons.size();
+							_neurons.push_back( neuron );
+						
+						//if not touched by input, but potentially activated by gas, we are still potentially OK as long as we have incoming GCs
+						} else if ( isGasActivated  ) {
+							
+							neuron->id = (int)_neurons.size();
+							_neurons.push_back( neuron );
+							
+						//if we are not touched by input and not potentially gas activated, we can never get activated!
+						} else {
+						
+							removeNeuronSynapsesAndGasChannels( neuron);	
+						}
+						
+					} else {
+						//normal operation of code
+						removeNeuronSynapsesAndGasChannels(neuron);
 					}
-					neuron->synapsesIn.clear();
-
-					itfor( SynapseMap, neuron->synapsesOut, it_syn )
-					{
-						Synapse *syn = it_syn->second;
-						syn->to->synapsesIn.erase( neuron );
-						delete syn;
-					}
-					neuron->synapsesOut.clear();
 				}
 			}
 		}

@@ -1,12 +1,12 @@
-#include "SheetsBrain.h"
+#include "brain/sheets/SheetsBrain.h"
 
 #include <assert.h>
 
 #include "brain/FiringRateModel.h"
-#include "brain/NervousSystem.h"
-#include "brain/SpikingModel.h"
-#include "genome/sheets/SheetsGenome.h"
 #include "utils/misc.h"
+#include "brain/NervousSystem.h"
+#include "genome/sheets/SheetsGenome.h"
+#include "brain/SpikingModel.h"
 
 using namespace genome;
 using namespace sheets;
@@ -63,6 +63,8 @@ SheetsBrain::SheetsBrain( NervousSystem *cns, SheetsGenome *genome, SheetsModel 
 , _numInternalNeurons( 0 )
 {
 	memset( _numSynapses, 0, sizeof(_numSynapses) );
+	
+	memset( _numGasChannels, 0, sizeof(_numGasChannels) ); //gaschannels
 
 	grow( genome, model );
 	delete model;
@@ -80,6 +82,7 @@ SheetsBrain::~SheetsBrain()
 //---------------------------------------------------------------------------
 void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 {
+
 	// ---
 	// --- Configure Neuron Count
 	// ---
@@ -90,7 +93,8 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 	// ---
 	itfor( NeuronVector, model->getNeurons(), it )
 		_dims.numSynapses += (int)(*it)->synapsesOut.size();
-
+		
+		
 	// ---
 	// --- Configure Input/Output Neurons/Nerves
 	// ---
@@ -105,6 +109,8 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 		itfor( NeuronVector, model->getNeurons(), it )
 		{
 			Neuron *neuron = *it;
+			
+			
 			switch( neuron->sheet->getType() )
 			{
 			case Sheet::Input:
@@ -114,6 +120,75 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 				_dims.numOutputNeurons++;
 				break;
 			case Sheet::Internal:
+			
+                switch (neuron->attrs.type) 
+                {
+                case Neuron::Attributes::E:
+                case Neuron::Attributes::I:
+                case Neuron::Attributes::EI:
+                  //do nothing not gas producing
+                  break;
+                case Neuron::Attributes::G1:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G1 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  break;
+                case Neuron::Attributes::G2:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G2 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  
+                  break;
+                case Neuron::Attributes::G3:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G3 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  break;
+                case Neuron::Attributes::G4:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G4 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  break;
+                case Neuron::Attributes::G5:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G5 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  break;
+                case Neuron::Attributes::G6:
+                  if (Brain::config.gasnetsDebugMode > 2) { 
+                      cout << "   GasnetsDebugMode[3]: " ;
+                      cout << " n[" << neuron->id  << "] is a " ;
+                      cout << "G6 Neuron having GasChannels added \n";
+                  }
+                  //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
+                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  break;
+                default:
+                  assert(false); //should not be M - this is a generic set - see comments in SheetsGenomeSchema.cp
+                }
+                ////////////
+			
 				// no-op
 				break;
 			default:
@@ -141,6 +216,7 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 			{
 				_numInternalSheets++;
 				_numInternalNeurons += sheetNeuronCount[sheetId];
+
 			}
 		}
 	}
@@ -177,15 +253,57 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 	// ---
 	{
 		int synapseIndex = 0;
+		
+		//gaschannel
+		int targetGaschannelIndex = 0;
+		int sourceGaschannelIndex = 0;
+		
+		
 
 		itfor( NeuronVector, model->getNeurons(), it )
 		{
 			Neuron *neuron = *it;
-
+			
+			//This code is vitally important to giving access to the type of neuron from within the FiringRateModel.cp file
+			// M exists, but only as a generic and is unreferenced other than for the purpose of receptive fields
+			//so we want to assert false if somehow it ever creeped into actual neuron structs
+			int neuronType = 0;
+			if (neuron->attrs.type == Neuron::Attributes::E ) {
+			    neuronType = 0;
+			} else if (neuron->attrs.type == Neuron::Attributes::I ) {
+			    neuronType = 1;
+			} else if (neuron->attrs.type == Neuron::Attributes::EI ) {
+			    neuronType = 2;
+			} else if (neuron->attrs.type == Neuron::Attributes::G1 ) {
+			    neuronType = 3;
+			} else if (neuron->attrs.type == Neuron::Attributes::G2 ) {
+			    neuronType = 4;
+			} else if (neuron->attrs.type == Neuron::Attributes::G3 ) {
+			    neuronType = 5;			    
+			} else if (neuron->attrs.type == Neuron::Attributes::G4 ) {
+			    neuronType = 6;			    
+			} else if (neuron->attrs.type == Neuron::Attributes::G5 ) {
+			    neuronType = 7;			    
+			} else if (neuron->attrs.type == Neuron::Attributes::G6 ) {
+			    neuronType = 8;			    			    
+            } else {
+                assert(false);
+            }
+            // end gasnets
+            
 			_neuralnet->set_neuron( neuron->id,
 									&(neuron->attrs.neuronModel),
-									synapseIndex );
-
+									synapseIndex,
+									-1, 			
+									neuronType , 			//gasnets,
+									-1,						//activatedByGas
+									-1, 					//receptorStrength
+									-1, 					//emissionRate
+									targetGaschannelIndex, 
+									-1,						//targetendgaschannels
+									sourceGaschannelIndex,
+									-1);					//sourceendgaschannels
+            
 			itfor( SynapseMap, neuron->synapsesIn, it_synapse )
 			{
 				Synapse *synapse = it_synapse->second;
@@ -196,10 +314,67 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 										 synapse->attrs.weight,
 										 synapse->attrs.lrate );
 
+                //segfault hits here, because synapse's neuron (from or to) must not have a sheet and/or type
+				if (synapse->from->sheet->getType() < 0 || synapse->to->sheet->getType() < 0 || synapse->from->sheet->getType() > 2 || synapse->to->sheet->getType() > 2) {
+                    cout << "You are going to hit a segfault because you are using a bad index! The can happen when you don't allocate enough space for GasChannels";
+                    assert(false);
+				}
+
 				_numSynapses[ synapse->from->sheet->getType() ][ synapse->to->sheet->getType() ] += 1;
+				
 			}
 
 			_neuralnet->set_neuron_endsynapses( neuron->id, synapseIndex );
+			
+			// setup target gaschannels
+			itfor( GasChannelMap, neuron->gasChannelsIn, it_gasChannel )
+			{
+				GasChannel *gasChannel = it_gasChannel->second;  //accesses the second of the pair
+				
+				int maxLength = Brain::config.gasnetsGasChannelSize - 1;
+				float maxDistance = Brain::config.gasnetsRadiusMax;	//maximum gas radius
+				
+				int length = (int)(1 +  (maxLength /  (maxDistance / gasChannel->from->absPosition.distance( gasChannel->to->absPosition))));
+				
+				if (Brain::config.gasnetsDebugMode > 2) {
+				    cout << "   GasnetsDebugMode[3]: " ;
+    				cout << "absolute distance from n[" << gasChannel->from->id << "] to n[" << gasChannel->to->id << "]: " << gasChannel->from->absPosition.distance( gasChannel->to->absPosition) << " ";
+    				cout << "length of gas channel in timesteps: " << length << "\n";
+                }
+				
+				_neuralnet->set_target_gaschannel( targetGaschannelIndex++,
+										 gasChannel->from->id,
+										 gasChannel->to->id,
+										 length);
+
+				_numGasChannels[ gasChannel->from->sheet->getType() ][ gasChannel->to->sheet->getType() ] += 1;
+				
+			}
+			// set target gaschannel endindex			
+			_neuralnet->set_neuron_end_target_gaschannels( neuron->id, targetGaschannelIndex );
+
+			
+			// setup source gaschannels
+			itfor( GasChannelMap, neuron->gasChannelsOut, it_gasChannel )
+			{
+				GasChannel *gasChannel = it_gasChannel->second;  //accesses the second of the pair
+				
+				int maxLength = Brain::config.gasnetsGasChannelSize - 1;
+				float maxDistance = Brain::config.gasnetsRadiusMax;	//maximum gas radius
+				
+				int length = (int)(1 +  (maxLength /  (maxDistance / gasChannel->from->absPosition.distance( gasChannel->to->absPosition))));
+				
+				_neuralnet->set_source_gaschannel( sourceGaschannelIndex++,
+										 gasChannel->from->id,
+										 gasChannel->to->id,
+										 length);
+
+			}
+			// set gaschannel endchannels
+			_neuralnet->set_neuron_end_source_gaschannels( neuron->id, sourceGaschannelIndex );
+			
+			
+			
 		}
 	}
 }

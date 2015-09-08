@@ -30,11 +30,28 @@ struct SpikingModel__Neuron
 	double SpikingParameter_b;
 	double SpikingParameter_c;
 	double SpikingParameter_d;
+	int type;				//gasnets
+	float receptorStrength; //gasnets
+	float emissionRate;		//gasnets
+	float emissionRadius;
+	int activatedByGas;
+	
+	
+	long  startTargetGaschannels; //gaschannels
+    long  endTargetGaschannels;	//gaschannels
+    long  startSourceGaschannels; //gaschannels
+    long  endSourceGaschannels;	//gaschannels
 };
 
 struct SpikingModel__NeuronAttrs
 {
 	float bias;
+	int type;				//gasnets
+	float geneticType;		//gasnets
+	float receptorStrength; //gasnets
+	float emissionRate;		//gasnets
+	float emissionRadius;	//gasnets
+	int activatedByGas;
 	double SpikingParameter_a;
 	double SpikingParameter_b;
 	double SpikingParameter_c;
@@ -50,15 +67,28 @@ struct SpikingModel__Synapse
 	float delta;  //!from iz intead of effecting weights directly
 };
 
+
+//tofix gasnets jasonayoder - make new type here, GasChannel - distance, from, to
+struct SpikingModel__GasChannel
+{
+    short fromneuron; //must be m-neuron
+    short toneuron; //can be m-neuron or std-neuron
+    short length; 
+};
+
+
+
+
 // forward decls
 class NervousSystem;
 class RandomNumberGenerator;
 
-class SpikingModel : public BaseNeuronModel<SpikingModel__Neuron, SpikingModel__NeuronAttrs, SpikingModel__Synapse>
+class SpikingModel : public BaseNeuronModel<SpikingModel__Neuron, SpikingModel__NeuronAttrs, SpikingModel__Synapse, SpikingModel__GasChannel>
 {
 	typedef SpikingModel__Neuron Neuron;
 	typedef SpikingModel__NeuronAttrs NeuronAttrs;
 	typedef SpikingModel__Synapse Synapse;
+	typedef SpikingModel__GasChannel GasChannel;
 
  public:
 	SpikingModel( NervousSystem *cns, float scale_latest_spikes );
@@ -69,7 +99,15 @@ class SpikingModel : public BaseNeuronModel<SpikingModel__Neuron, SpikingModel__
 	virtual void set_neuron( int index,
 							 void *attributes,
 							 int startsynapses,
-							 int endsynapses );
+							 int endsynapses,
+							 int type,					//gasnets
+							 int activatedByGas,
+							 float receptorStrength,	//gasnets
+							 float emissionRate,
+							 int startTargetGaschannels,    //gaschannels
+							 int endTargetGaschannels,		//gaschannels
+							 int startSourceGaschannels,	//gaschannels
+							 int endSourceGaschannels);		//gaschannels
 
 	virtual void update( bool bprint );
 

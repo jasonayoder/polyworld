@@ -18,15 +18,18 @@ class AbstractFile;
 class NeuronModel
 {
  public:
+	
 	struct Dimensions
 	{
-		Dimensions() { numNeurons = numInputNeurons = numOutputNeurons = numSynapses = 0; }
+		Dimensions() { numGasChannels = numNeurons = numInputNeurons = numOutputNeurons = numSynapses = 0; }
 
 		int numNeurons;
 		int numInputNeurons;
 		int numOutputNeurons;
 
+		long numGasChannels; //gasnets
 		long numSynapses;
+		
 
 		inline int getFirstInputNeuron() { return 0; }
 		inline int getFirstOutputNeuron() { return numInputNeurons; }
@@ -43,9 +46,41 @@ class NeuronModel
 	virtual void set_neuron( int index,
 							 void *attributes,
 							 int startsynapses = -1,
-							 int endsynapses = -1 ) = 0;
+							 int endsynapses = -1,
+							 int type = -1,							//gasnets
+							 int activatedByGas = -1,				//gasnets
+							 float receptorStrength = -1,			//gasnets
+							 float emissionRate = -1,				//gasnets
+							 int startTargetGaschannels = -1,		//gasnets
+							 int endTargetGaschannels = -1 ,		//gasnets
+							 int startSourceGaschannels = -1,		//gasnets
+							 int endSourceGaschannels = -1 ) = 0; 	//gasnets
+							 
 	virtual void set_neuron_endsynapses( int index,
 										 int endsynapses ) = 0;
+										 
+    //gaschannel
+    virtual void set_neuron_end_target_gaschannels( int index,
+										 int endgaschannels ) = 0;
+
+    //gaschannel
+    virtual void set_neuron_end_source_gaschannels( int index,
+										 int endgaschannels ) = 0;
+
+    //gaschannel										 
+    virtual void set_target_gaschannel(int index,
+                                int from,
+                                int to,
+                                int length) = 0;
+                                
+
+   //gaschannel										 
+    virtual void set_source_gaschannel(int index,
+                                int from,
+                                int to,
+                                int length) = 0;                                
+                                
+	
 	virtual void set_synapse( int index,
 							  int from,
 							  int to,

@@ -1,9 +1,9 @@
-#include "SheetsGenome.h"
+#include "genome/sheets/SheetsGenome.h"
 
 #include <iostream>
 
-#include "SheetsGenomeSchema.h"
 #include "brain/sheets/SheetsBrain.h"
+#include "genome/sheets/SheetsGenomeSchema.h"
 
 using namespace std;
 using namespace genome;

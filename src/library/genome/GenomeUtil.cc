@@ -1,18 +1,17 @@
-#include "GenomeUtil.h"
+#include "genome/GenomeUtil.h"
 
 #include <assert.h>
 
-#include "Gene.h"
-#include "GenomeLayout.h"
-
 #include "agent/agent.h"
-#include "agent/Metabolism.h"
 #include "brain/Brain.h"
+#include "genome/Gene.h"
+#include "genome/GenomeLayout.h"
+#include "sim/globals.h"
 #include "genome/groups/GroupsGenome.h"
 #include "genome/groups/GroupsGenomeSchema.h"
-#include "genome/sheets/SheetsGenomeSchema.h"
-#include "sim/globals.h"
+#include "agent/Metabolism.h"
 #include "utils/misc.h"
+#include "genome/sheets/SheetsGenomeSchema.h"
 
 using namespace std;
 using namespace genome;

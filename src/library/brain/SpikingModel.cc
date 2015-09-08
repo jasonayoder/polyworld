@@ -1,21 +1,22 @@
-#include "SpikingModel.h"
+#include "brain/SpikingModel.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
-#include "NervousSystem.h"
+#include "sim/debug.h"
 #include "genome/Genome.h"
 #include "genome/GenomeSchema.h"
-#include "sim/debug.h"
 #include "utils/misc.h"
+#include "brain/NervousSystem.h"
 #include "utils/RandomNumberGenerator.h"
 
+#include "brain/Brain.h" // temporary
 
 using namespace std;
 
 
 SpikingModel::SpikingModel( NervousSystem *cns, float scale_latest_spikes_ )
-: BaseNeuronModel<Neuron, NeuronAttrs, Synapse>( cns )
+: BaseNeuronModel<Neuron, NeuronAttrs, Synapse, GasChannel>( cns )
 , scale_latest_spikes( scale_latest_spikes_ )
 {
 	this->rng = cns->getRNG();
@@ -51,12 +52,28 @@ void SpikingModel::init_derived( float initial_activation )
 void SpikingModel::set_neuron( int index,
 							   void *attributes,
 							   int startsynapses,
-							   int endsynapses )
+							   int endsynapses ,
+							   int type, 				//gasnets
+							   int activatedByGas,
+							   float receptorStrength,	//gasnets
+							   float emissionRate,		//gaschannels
+							   int startTargetGaschannels,  	//gaschannels
+							   int endTargetGaschannels, 		//gaschannels
+							   int startSourceGaschannels,		//gaschannels
+							   int endSourceGaschannels)		//gaschannels
 {
-	BaseNeuronModel<Neuron, NeuronAttrs, Synapse>::set_neuron( index,
+	BaseNeuronModel<Neuron, NeuronAttrs, Synapse, GasChannel>::set_neuron( index,
 															   attributes,
 															   startsynapses,
-															   endsynapses );
+															   endsynapses,
+															   type,  				//gasnets
+															   activatedByGas,		//gasnets
+															   receptorStrength, 	//gasnets
+															   emissionRate,  		//gaschannels
+															   startTargetGaschannels,  	//gaschannels
+															   endTargetGaschannels,    	//gaschannels
+															   startSourceGaschannels,		//gaschannels
+															   endSourceGaschannels);		//gaschannels
 	NeuronAttrs *attrs = (NeuronAttrs *)attributes;
 	Neuron &n = neuron[index];
 
@@ -399,7 +416,7 @@ void SpikingModel::update( bool bprint )
 */
 	
 
-	//simulation.cc readworldfile
+	//simulation.cpp readworldfile
 	//when you change bump the version number
 	//when version < new version then set spiking to false.
 	//tsimulation object might want fUseSpikingModel or something similair.	

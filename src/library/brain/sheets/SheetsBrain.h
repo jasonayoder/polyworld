@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SheetsModel.h"
 #include "brain/Brain.h"
+#include "brain/sheets/SheetsModel.h"
 
 namespace genome { class SheetsGenome; }
 
@@ -35,6 +35,7 @@ class SheetsBrain : public Brain
 	int getNumInternalSheets();
 	int getNumInternalNeurons();
 	int getNumSynapses( sheets::Sheet::Type from, sheets::Sheet::Type to );
+	int getNumGasChannels( sheets::Sheet::Type from, sheets::Sheet::Type to );
 
  private:
     void grow( genome::SheetsGenome *genome, sheets::SheetsModel *model );
@@ -42,8 +43,11 @@ class SheetsBrain : public Brain
 	int _numInternalSheets;
 	int _numInternalNeurons;
 	int _numSynapses[sheets::Sheet::__NTYPES][sheets::Sheet::__NTYPES];
+	int _numGasChannels[sheets::Sheet::__NTYPES][sheets::Sheet::__NTYPES];
+	
 };
 
 inline int SheetsBrain::getNumInternalSheets() { return _numInternalSheets; }
 inline int SheetsBrain::getNumInternalNeurons() { return _numInternalNeurons; }
 inline int SheetsBrain::getNumSynapses( sheets::Sheet::Type from, sheets::Sheet::Type to ) { return _numSynapses[from][to]; }
+inline int SheetsBrain::getNumGasChannels( sheets::Sheet::Type from, sheets::Sheet::Type to ) { return _numGasChannels[from][to]; }

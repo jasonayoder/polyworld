@@ -38,6 +38,15 @@ namespace sheets
 			Vector2<T> operator+( const Vector2<T> &other ) const { return Vector2<T>( a + other.a, b + other.b ); }
 			Vector2<T> operator-( const Vector2<T> &other ) const { return Vector2<T>( a - other.a, b - other.b ); }
 			void scale( Vector2<T> &scale ) { a *= scale.a; b *= scale.b; }
+			
+			//added this to check actual distance, not square distance
+			//does not work, the sheetPosition is not what it appears to be
+			float distance( Vector2<T> &other, Vector2<T> neuronSpacing )
+    		{
+	    		return sqrt( (a - other.a)*neuronSpacing.a * (a - other.a)*neuronSpacing.a
+						 + (b - other.b)*neuronSpacing.b * (b - other.b)*neuronSpacing.b );
+            }
+			
 		};
 
 	template<typename T>
@@ -61,6 +70,8 @@ namespace sheets
 		float x, y, z;
 
 		void set( float x_, float y_, float z_ ) { x=x_; y=y_; z=z_; }
+
+		//_orientation, position, _slot
 		void set( Orientation orientation, const Vector2<T> &plane, T planePos )
 		{
 			switch( orientation )
@@ -100,15 +111,36 @@ namespace sheets
 			float lrate;
 		} attrs;
 	};
+	//===========================================================================
+	// GasChannel
+	//===========================================================================
+	class GasChannel
+	{
+	public:
+		class Neuron *from;
+		class Neuron *to;
+
+		struct Attributes
+        {
+		    float emissionRate;
+		    float bias;
+        } attrs;
+		
+	};
 
 	//===========================================================================
 	// Neuron
 	//===========================================================================
 	struct NeuronKeyCompare
 	{
-		bool operator()( class Neuron *, class Neuron * ) const;
+		bool operator()( class Neuron *, class Neuron * );
 	};
+	
 	typedef std::map<class Neuron *, Synapse *, NeuronKeyCompare> SynapseMap;
+	
+	//gaschannel
+	typedef std::map<class Neuron *, GasChannel *, NeuronKeyCompare> GasChannelMap;
+	
 
 	class Neuron
 	{
@@ -123,9 +155,19 @@ namespace sheets
 		Vector3f absPosition;
 		SynapseMap synapsesOut;
 		SynapseMap synapsesIn;
+		GasChannelMap gasChannelsOut; 	//gaschannels
+		GasChannelMap gasChannelsIn;	//gaschannels
+		
 		struct Attributes
 		{
-			enum Type { E, I, EI } type;
+		    //          0  1   2  3   4   5   6   7   8   9
+			enum Type { E, I, EI, G1, G2, G3, G4, G5, G6, M  } type; //gasnets M is used as a generic for G1-G6
+			
+            int activatedByGas;
+			float receptorStrength; //gasnets
+			float emissionRate; 	//gasnets
+			float emissionRadius;	//gasnets
+			
 			union
 			{
 				FiringRateModel__NeuronAttrs firingRate;
@@ -208,6 +250,7 @@ namespace sheets
 		std::string getName();
 		Type getType();
 		const Vector2i &getNeuronCount();
+		
 		Neuron *getNeuron( int a, int b );
 		Neuron *getNeuron( Vector2i index );
 		
@@ -229,18 +272,34 @@ namespace sheets
 								Sheet *other,
 								std::function<bool (Neuron *, ReceptiveFieldNeuronRole)> neuronPredicate,
 								std::function<void (Synapse *)> synapseCreated );
+								
+        
+        int addGasChannels( Neuron *origin,
+                            SheetsModel *other);
+        
+
 
 	private:
 		NeuronSubset findNeurons( const Vector2f &center,
 								  const Vector2f &size );
+
 		NeuronSubset findReceptiveFieldNeurons( const Vector2f &neuronPosition,
 												const Vector2f &fieldOffset,
 												const Vector2f &fieldSize );
+												
+
+
+        vector<Neuron*> getNeuronsInGasRange(Neuron *origin);
+												
 
 		void trim( float &center, float &size );
 		void createNeurons( std::function<void (Neuron*)> &neuronCreated );
 		float distance( Neuron *a, Neuron *b );
 
+
+		//gaschannel
+		GasChannel *createGasChannel( Neuron *from, Neuron *to );
+		
 		Synapse *createSynapse( Neuron *from, Neuron *to );
 
 		class SheetsModel *_sheetsModel;
@@ -294,6 +353,7 @@ namespace sheets
 		float getProbabilitySynapse( float distance );
 
 	private:
+	    void removeNeuronSynapsesAndGasChannels( Neuron *neuron);
 		void touchFromInput( Neuron *neuron );
 		void touchFromOutput( Neuron *neuron );
 		void addNonCulledNeurons( SheetVector &sheets );

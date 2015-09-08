@@ -5,6 +5,7 @@
 #include "genome/GenomeSchema.h"
 #include "proplib/proplib.h"
 
+
 namespace genome
 {
 	class SheetsGenomeSchema : public GenomeSchema
@@ -61,7 +62,8 @@ namespace genome
 
 		enum SynapseType
 		{
-			EE = 0, EI, IE, II, __NumSynapseTypes
+			//EE = 0, EI, IE, II, ME, MI, EM, IM, MM, __NumSynapseTypes //Gasnets modulation
+			EE = 0, EI, IE, II, ME, MI, EM, IM, __NumSynapseTypes //Gasnets modulation
 		};
 		static sheets::Neuron::Attributes::Type getNeuronType( SynapseType synapseType,
 															   sheets::Sheet::ReceptiveFieldNeuronRole role );
@@ -91,7 +93,12 @@ namespace genome
 								   IntMinMax otherSheetId,
 								   sheets::Sheet::ReceptiveFieldRole role,
 								   IntMinMax synapseType );
+		
 		void defineSynapseAttrs( ContainerGene *container );
+		
+		//gaschannel
+		void defineGasChannelAttrs( ContainerGene *container );
+		
 
 		SheetsCrossover _crossover;
 
@@ -114,5 +121,10 @@ namespace genome
 								   ContainerGene *fieldGene );
 		sheets::Synapse::Attributes decodeSynapseAttrs( SheetsGenome *g,
 														ContainerGene *container );
+														
+        //gaschannel														
+        sheets::GasChannel::Attributes decodeGasChannelAttrs( SheetsGenome *g,
+														ContainerGene *container );														
+														
 	};
 }

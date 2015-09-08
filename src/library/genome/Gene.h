@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "NeurGroupType.h"
 #include "proplib/cppprops.h"
 #include "utils/Scalar.h"
+#include "NeurGroupType.h"
 
 namespace genome
 {

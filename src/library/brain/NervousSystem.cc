@@ -1,14 +1,14 @@
-#include "NervousSystem.h"
+#include "brain/NervousSystem.h"
 
 #include <assert.h>
 #include <string.h>
 
-#include "Brain.h"
-#include "Nerve.h"
-#include "genome/Genome.h"
 #include "utils/AbstractFile.h"
-#include "utils/RandomNumberGenerator.h"
+#include "brain/Brain.h"
+#include "genome/Genome.h"
 #include "utils/misc.h"
+#include "brain/Nerve.h"
+#include "utils/RandomNumberGenerator.h"
 
 using namespace genome;
 

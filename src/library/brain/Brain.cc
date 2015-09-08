@@ -5,24 +5,27 @@
 /********************************************************************/
 
 // Self
-#include "Brain.h"
+#include "brain/Brain.h"
 
 #include <fstream>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
 
+// qt
+//#include <qapplication.h>
+
 // Local
-#include "NervousSystem.h"
-#include "NeuronModel.h"
+#include "utils/AbstractFile.h"
 #include "agent/agent.h"
-#include "brain/groups/GroupsBrain.h"
-#include "brain/sheets/SheetsBrain.h"
 #include "sim/debug.h"
 #include "sim/globals.h"
-#include "sim/Simulation.h"
-#include "utils/AbstractFile.h"
+#include "brain/groups/GroupsBrain.h"
 #include "utils/misc.h"
+#include "brain/NervousSystem.h"
+#include "brain/NeuronModel.h"
+#include "brain/sheets/SheetsBrain.h"
+#include "sim/Simulation.h"
 
 using namespace genome;
 
@@ -82,6 +85,7 @@ void Brain::processWorldfile( proplib::Document &doc )
 	Brain::config.maxneuron2energy = doc.get( "EnergyUseNeurons" );
 	Brain::config.outputSynapseLearning = doc.get( "OutputSynapseLearning" );
 	Brain::config.synapseFromOutputNeurons = doc.get( "SynapseFromOutputNeurons" );
+
 	Brain::config.numPrebirthCycles = doc.get( "PreBirthCycles" );
 
     Brain::config.logisticSlope = doc.get( "LogisticSlope" );
@@ -93,6 +97,57 @@ void Brain::processWorldfile( proplib::Document &doc )
 
     Brain::config.maxsynapse2energy = doc.get( "EnergyUseSynapses" );
     Brain::config.decayRate = doc.get( "SynapseWeightDecayRate" );
+    
+    //Genetic Neuron Constraints
+    Brain::config.geneticNeuronType = doc.get( "GeneticNeuronType" );
+    Brain::config.geneticNeuronPosition = doc.get( "GeneticNeuronPosition" );
+    
+    
+    // <Gasnets variables
+    Brain::config.gasnetsEnabled = doc.get( "GasnetsEnabled" );
+    if (Brain::config.gasnetsEnabled) {
+        Brain::config.gasnetsDecayRate = doc.get( "GasnetsDecayRate" );
+        {
+            string val = doc.get( "GasnetsModulationTypeOrder" );
+            if( val == "PlaAct" )
+                Brain::config.gasnetsModulationTypeOrder = Brain::Configuration::PlaAct;
+            else if( val == "ActPla" )
+                Brain::config.gasnetsModulationTypeOrder = Brain::Configuration::ActPla;
+            else
+                assert( false );
+        }
+        Brain::config.gasnetsGlobalFlatMode = doc.get( "GasnetsGlobalFlatMode" );
+        Brain::config.gasnetsConcentrationGradient = doc.get( "GasnetsConcentrationGradient" );
+        Brain::config.gasnetsDiscreteEmissionBuildup = doc.get( "GasnetsDiscreteEmissionBuildup" );
+        Brain::config.gasnetsFiringRateThresholdBiasBased = doc.get( "GasnetsFiringRateThresholdBiasBased" );
+        Brain::config.gasnetsFiringRateThreshold = doc.get( "GasnetsFiringRateThreshold" );
+        Brain::config.gasnetsRadiusMin = doc.get( "GasnetsRadiusMin" );
+        Brain::config.gasnetsRadiusMax = doc.get( "GasnetsRadiusMax" );
+        Brain::config.gasnetsReceptors = doc.get( "GasnetsReceptors" );
+        Brain::config.gasnetsGasActivationPercentage = doc.get( "GasnetsGasActivationPercentage" );
+        
+        Brain::config.gasnetsMinEmissionRate = doc.get( "GasnetsMinEmissionRate" );
+        Brain::config.gasnetsMaxEmissionRate = doc.get( "GasnetsMaxEmissionRate" );
+        
+        Brain::config.gasnetsDiscreteReceptorStrength = doc.get("DiscreteReceptorStrength");
+        Brain::config.gasnetsNeuronGasGenerationMin = doc.get( "GasnetsNeuronGasGenerationMin" );
+        Brain::config.gasnetsNeuronGasGenerationMax = doc.get( "GasnetsNeuronGasGenerationMax" );
+        Brain::config.gasnetsNumGases = doc.get( "GasnetsNumGases" );    
+        Brain::config.gasnetsDistancePerTimestep = doc.get( "GasnetsDistancePerTimestep" );    
+        Brain::config.gasnetsGasChannelSize  = (int)(Brain::config.gasnetsRadiusMax / Brain::config.gasnetsDistancePerTimestep);
+        Brain::config.gasnetsDebugMode  = doc.get( "GasnetsDebugMode" );
+        
+        
+        if (Brain::config.gasnetsDebugMode > 0) {
+            cout << " GasnetsDebugMode[1]: " ;
+            cout << "Brain::config.gasnetsGasChannelSize: " << Brain::config.gasnetsGasChannelSize << "\n";
+        }
+        
+    } else {
+        Brain::config.gasnetsDebugMode = 0;
+    }
+    
+    // Gasnets variables>
 
  	// Set up retina values
 	Brain::config.minWin = doc.get( "RetinaWidth" );

@@ -1,13 +1,13 @@
-#include "SheetsGenomeSchema.h"
+#include "genome/sheets/SheetsGenomeSchema.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <iostream>
 
-#include "SheetsGenome.h"
 #include "agent/agent.h"
 #include "brain/sheets/SheetsBrain.h"
+#include "genome/sheets/SheetsGenome.h"
 
 using namespace std;
 using namespace genome;
@@ -95,6 +95,7 @@ SheetsCrossover *SheetsGenomeSchema::getCrossover()
 		CONT->add( new ImmutableScalarGene(NAME, MIN) )
 
 #define SCALAR(CONT, NAME, MIN, MAX) __SCALAR(CONT, NAME, MIN, MAX, ROUND_INT_FLOOR)
+#define SCALARJ(CONT, NAME, MIN, MAX) __SCALAR(CONT, NAME, MIN, MAX, ROUND_NONE)
 #define SCALARV(CONT, NAME, MINMAX ) SCALAR(CONT, NAME, (MINMAX).a, (MINMAX).b)
 #define INDEX(CONT, NAME, MIN, MAX) __SCALAR(CONT, NAME, MIN, MAX, ROUND_INT_BIN)
 #define INDEXV(CONT, NAME, MINMAX) INDEX(CONT, NAME, (MINMAX).a, (MINMAX).b )
@@ -406,12 +407,18 @@ Neuron::Attributes::Type SheetsGenomeSchema::getNeuronType( SynapseType synapseT
 	case Sheet::From:
 		switch( synapseType )
 		{
+		case EM:
 		case EE:
 		case EI:
 			return Neuron::Attributes::E;
+        case IM:
 		case IE:
 		case II:
 			return Neuron::Attributes::I;
+		case ME:
+		case MI:
+		    //whenever this is returned, we should get a false
+			return Neuron::Attributes::M; //gasnets
 		default:
 			assert( false );
 			break;
@@ -420,12 +427,17 @@ Neuron::Attributes::Type SheetsGenomeSchema::getNeuronType( SynapseType synapseT
 	case Sheet::To:
 		switch( synapseType )
 		{
+		case ME:
 		case EE:
 		case IE:
 			return Neuron::Attributes::E;
+        case MI:
 		case EI:
 		case II:
 			return Neuron::Attributes::I;
+		case EM:
+		case IM:
+			return Neuron::Attributes::M; //gasnets
 		default:
 			assert( false );
 			break;
@@ -507,6 +519,38 @@ ContainerGene *SheetsGenomeSchema::defineSheet( const char *name,
 void SheetsGenomeSchema::defineNeuronAttrs( ContainerGene *attrs )
 {
 	SCALAR( attrs, "Bias", -Brain::config.maxbias, Brain::config.maxbias );
+	
+    if (Brain::config.gasnetsEnabled) {
+        
+        SCALARJ( attrs, "EmissionRate", Brain::config.gasnetsMinEmissionRate, Brain::config.gasnetsMaxEmissionRate );
+        
+       	if (Brain::config.gasnetsReceptors) {
+       	  SCALARJ( attrs, "ReceptorStrength", 0.0, 1.0 );
+       	} else {
+       	  SCALARJ( attrs, "ReceptorStrength", 1.0, 1.0 );
+       	}
+       	
+       	//if less than GasnetsGasActivationPercentage it will be a activated by a gas
+        SCALARJ( attrs, "ActivationBySynapses", 0.0, 1.0 );
+      	SCALARJ( attrs, "EmissionRadius", Brain::config.gasnetsRadiusMin, Brain::config.gasnetsRadiusMax );
+	}
+	
+	
+	//normally we have types E or I only 0 or 1
+	int numNeuronTypes = 2;
+	
+	//for each gas there is one more type
+	if (Brain::config.gasnetsEnabled) {
+	    numNeuronTypes += Brain::config.gasnetsNumGases;
+	}
+	
+	if (Brain::config.geneticNeuronType) {
+	  INDEX( attrs, "GeneticType", 0, numNeuronTypes - 1  );
+	}
+	
+	if (Brain::config.geneticNeuronPosition) {
+	  //TODO - ADD NEURON POSITION HERE 
+	}
 
 	switch( Brain::config.neuronModel )
 	{
@@ -546,6 +590,13 @@ void SheetsGenomeSchema::defineReceptiveFields( ContainerGene *fromSheets,
 				defineReceptiveField( from, toId, Sheet::Target, EI );
 				defineReceptiveField( from, toId, Sheet::Target, IE );
 				defineReceptiveField( from, toId, Sheet::Target, II );
+				
+				//only synapses GOING TO M-NEURONS
+				if (Brain::config.gasnetsEnabled) {
+    				defineReceptiveField( from, toId, Sheet::Target, EM );
+	    			defineReceptiveField( from, toId, Sheet::Target, IM );
+                }
+								
 			}
 
 			{
@@ -554,6 +605,13 @@ void SheetsGenomeSchema::defineReceptiveFields( ContainerGene *fromSheets,
 				defineReceptiveField( to, fromId, Sheet::Source, EI );
 				defineReceptiveField( to, fromId, Sheet::Source, IE );
 				defineReceptiveField( to, fromId, Sheet::Source, II );
+				
+				//We only want E->M or I->M synapses
+				if (Brain::config.gasnetsEnabled) {
+    				defineReceptiveField( to, fromId, Sheet::Source, EM );
+    				defineReceptiveField( to, fromId, Sheet::Source, IM );
+                }
+                
 			}
 		}
 	}
@@ -692,7 +750,7 @@ SheetsModel *SheetsGenomeSchema::createSheetsModel( SheetsGenome *genome )
 	createReceptiveFields( model, genome, genome->gene("InputSheets") );
 	createReceptiveFields( model, genome, genome->gene("OutputSheets") );
 	createReceptiveFields( model, genome, genome->gene("InternalSheets") );
-
+	
 	model->cull();
 
 	return model;
@@ -742,19 +800,154 @@ void SheetsGenomeSchema::createSheet( SheetsModel *model, SheetsGenome *g, Conta
 	// ---
 	function<void (Neuron *)> neuronCreated;
 
+	//created this function instead of lots of bad alternative ways of coding
+	function<Neuron::Attributes::Type (Neuron *, int num)> convertIntToNeuronTypeEnum = [](Neuron *neuron, int num) {
+                    switch (num)
+                    {
+                        //we skip the IE type because we don't make internal neurons that type
+                        case 0:
+                          return neuron->attrs.type = Neuron::Attributes::E;
+                        case 1:
+                          return neuron->attrs.type = Neuron::Attributes::I;
+                        case 2:
+                          return neuron->attrs.type = Neuron::Attributes::G1;
+                        case 3:
+                          return neuron->attrs.type = Neuron::Attributes::G2;
+                        case 4:
+                          return neuron->attrs.type = Neuron::Attributes::G3;
+                        case 5:
+                          return neuron->attrs.type = Neuron::Attributes::G4;
+                        case 6:
+                          return neuron->attrs.type = Neuron::Attributes::G5;
+                        case 7:
+                          return neuron->attrs.type = Neuron::Attributes::G6;
+                        default:
+                          assert(false);
+                    }
+                };
+
+
+
 	function<void (Neuron *)> setIE =
-		[sheetType] ( Neuron *neuron )
+		[sheetType, neuronCount, convertIntToNeuronTypeEnum] ( Neuron *neuron ) //added neuronCount to capture list, also added function to convert numbers
 		{
+		
 			switch( sheetType )
 			{
 			case Sheet::Input:
 			case Sheet::Output:
 				neuron->attrs.type = Neuron::Attributes::EI;
+				
+				if (Brain::config.gasnetsEnabled && Brain::config.neuronModel == Brain::Configuration::TAU) {
+				  neuron->attrs.receptorStrength = neuron->attrs.neuronModel.tau.receptorStrength;
+				  //neuron->attrs.activatedByGas = neuron->attrs.neuronModel.tau.activatedByGas;
+				}
+				
+				
 				break;
 			case Sheet::Internal:
-				neuron->attrs.type = (neuron->sheetIndex.a % 2) == (neuron->sheetIndex.b % 2)
-					? Neuron::Attributes::E
-					: Neuron::Attributes::I;
+			    
+			    //Set TAU variables
+                if (Brain::config.neuronModel == Brain::Configuration::TAU  ) 
+                {
+                    //Gasnets
+                    if (Brain::config.gasnetsEnabled) {
+                        neuron->attrs.emissionRadius = neuron->attrs.neuronModel.tau.emissionRadius;
+                        neuron->attrs.receptorStrength = neuron->attrs.neuronModel.tau.receptorStrength;
+                        neuron->attrs.emissionRate = neuron->attrs.neuronModel.tau.emissionRate;
+                        neuron->attrs.activatedByGas = neuron->attrs.neuronModel.tau.activatedByGas;
+                    }
+
+                    //Genetic Type
+                    if (Brain::config.geneticNeuronType) {
+                      neuron->attrs.type = convertIntToNeuronTypeEnum( neuron, (int)neuron->attrs.neuronModel.tau.type );
+                    }
+                
+                //Set FIRINGRATE variables
+                } else if (Brain::config.neuronModel == Brain::Configuration::FIRING_RATE ) {
+                
+                    //Gasnets
+                    if (Brain::config.gasnetsEnabled) {
+                        neuron->attrs.emissionRadius = neuron->attrs.neuronModel.firingRate.emissionRadius;
+                        neuron->attrs.receptorStrength = neuron->attrs.neuronModel.firingRate.receptorStrength;
+                        neuron->attrs.emissionRate = neuron->attrs.neuronModel.firingRate.emissionRate;
+                        neuron->attrs.activatedByGas = neuron->attrs.neuronModel.firingRate.activatedByGas;
+                    }
+                    
+                    //Genetic Type
+                    if (Brain::config.geneticNeuronType) {
+                        neuron->attrs.type = convertIntToNeuronTypeEnum( neuron, (int)neuron->attrs.neuronModel.firingRate.type );
+                      
+                    }
+                    
+                //Not prepared for any other neuronModel
+                } else {
+                    assert(false);
+                }
+                
+                //for modular arthimetic based neuron types
+                if (!Brain::config.geneticNeuronType) {
+                    
+                    
+                    if (!Brain::config.gasnetsEnabled) 
+                    {
+                        //normal non-genetic non-gas version
+                        neuron->attrs.type = (neuron->sheetIndex.a % 2) == (neuron->sheetIndex.b % 2)
+                            ? Neuron::Attributes::E
+                            : Neuron::Attributes::I;
+                    }
+                    else
+                    {
+                        //TODO - redo code here without a nested switch statement
+                        if ( Brain::config.gasnetsNumGases == 2 )  
+                        {
+                            switch ( (neuron->sheetIndex.a + neuron->sheetIndex.b*neuronCount.a) % 6) 
+                            {
+                                case 0:
+                                case 4:
+                                  neuron->attrs.type = Neuron::Attributes::E;
+                                  break;
+                                case 2:
+                                case 5:
+                                  neuron->attrs.type = Neuron::Attributes::I;
+                                  break;
+                                case 1:
+                                  neuron->attrs.type = Neuron::Attributes::G1;
+                                  break;
+                                case 3:
+                                  neuron->attrs.type = Neuron::Attributes::G2;
+                                  break;
+                                default:
+                                  assert(false);
+                              }
+                              
+                              if (Brain::config.gasnetsDebugMode > 2) {
+                                cout << "   GasnetsDebugMode[3]: Neuron created (type: "<<neuron->attrs.type <<") @ (" ;
+                                cout << neuron->sheetIndex.a << "," << neuron->sheetIndex.b << ")\n";
+                              }
+                              
+                          } else {
+                              cout <<"MORE THAN TWO gases????";
+                              assert(false);
+                          }
+                    }
+			    } else {
+
+			        //When the neuron type is genetically specified!
+			        if (Brain::config.gasnetsDebugMode > 2) {
+                                      cout << "   GasnetsDebugMode[3]: Neuron created (type: " << neuron->attrs.type << ") @ " ;
+                                      cout << " (" << neuron->sheetIndex.a << "," << neuron->sheetIndex.b << ")\n";
+                    }
+                    
+                    if (neuron->attrs.type < 0 || neuron->attrs.type > 2 + Brain::config.gasnetsNumGases) {
+                      assert(false);
+                    }
+                    
+                    
+			    }
+			    
+			    
+			    
 				break;
 			default:
 				assert( false );
@@ -773,7 +966,7 @@ void SheetsGenomeSchema::createSheet( SheetsModel *model, SheetsGenome *g, Conta
 	{
 		ContainerGene *attrsGene = GeneType::to_Container( sheetGene->gene( "NeuronAttrs" ) );
 		Neuron::Attributes attrs = decodeNeuronAttrs( g, attrsGene );
-
+		
 		neuronCreated = [setIE, attrs]( Neuron *neuron )
 		{
 			neuron->attrs = attrs;
@@ -789,9 +982,9 @@ void SheetsGenomeSchema::createSheet( SheetsModel *model, SheetsGenome *g, Conta
 			ContainerGene *agene = GeneType::to_Container( attrsGene->getAll()[neuron->sheetIndex.a] );
 			ContainerGene *bgene = GeneType::to_Container( agene->getAll()[neuron->sheetIndex.b] );
 			neuron->attrs = decodeNeuronAttrs( g, bgene );
-
 			setIE( neuron );
 		};
+		
 	}
 	else
 	{
@@ -816,25 +1009,153 @@ Neuron::Attributes SheetsGenomeSchema::decodeNeuronAttrs( SheetsGenome *g,
 														  ContainerGene *attrsGene )
 {
 	Neuron::Attributes attrs;
+	
+	
 
+
+	
 	switch( Brain::config.neuronModel )
 	{
 	case Brain::Configuration::FIRING_RATE:
 		attrs.neuronModel.firingRate.bias = g->get( attrsGene->gene("Bias") );
+		if (Brain::config.gasnetsEnabled) {
+		    attrs.neuronModel.firingRate.receptorStrength = g->get( attrsGene->gene("ReceptorStrength") ); 	//gasnets
+		    
+		    if (Brain::config.gasnetsDiscreteReceptorStrength) {
+		        if (attrs.neuronModel.firingRate.receptorStrength < 0.33) {
+		            attrs.neuronModel.firingRate.receptorStrength = 0;
+		        } else if (attrs.neuronModel.firingRate.receptorStrength < 0.66) {
+		            attrs.neuronModel.firingRate.receptorStrength = 0.5;
+		        } else {
+		            attrs.neuronModel.firingRate.receptorStrength = 1.0;
+                }
+		    }
+		    
+		    
+		    if (   (float)g->get( attrsGene->gene("ActivationBySynapses") )  < 1.0 - Brain::config.gasnetsGasActivationPercentage ) {
+		        attrs.neuronModel.firingRate.activatedByGas = 0;
+		    } else {
+		    
+		        float distributionLevel =  Brain::config.gasnetsGasActivationPercentage / Brain::config.gasnetsNumGases ;
+		        //starting at gas 1
+		        attrs.neuronModel.firingRate.activatedByGas = 1 +
+		            floor(   (  (float)g->get(attrsGene->gene("ActivationBySynapses")) - (1.0 - Brain::config.gasnetsGasActivationPercentage)  )   /  distributionLevel);
+
+		        //catch for the case when an EXACT 1 is returned by the gene
+		        if (attrs.neuronModel.firingRate.activatedByGas >  Brain::config.gasnetsNumGases) {
+		          attrs.neuronModel.firingRate.activatedByGas -= 1;
+		        }
+		        
+		    }
+		    
+		    
+		    
+		    attrs.neuronModel.firingRate.emissionRate = g->get( attrsGene->gene("EmissionRate") ); 			//gasnets
+		    attrs.neuronModel.firingRate.emissionRadius = g->get( attrsGene->gene("EmissionRadius") ); 		//gasnets
+		}
+		
+		if (Brain::config.geneticNeuronType) {
+		    attrs.neuronModel.firingRate.type = g->get( attrsGene->gene("GeneticType") );
+		    
+		}
+		
 		break;
 	case Brain::Configuration::TAU:
+
+	    if (Brain::config.gasnetsEnabled) {
+    	    attrs.neuronModel.tau.receptorStrength = g->get( attrsGene->gene("ReceptorStrength") ); 		//gasnets
+	        
+	        if (Brain::config.gasnetsDiscreteReceptorStrength) {
+		        if (attrs.neuronModel.tau.receptorStrength < 0.33) {
+		            attrs.neuronModel.tau.receptorStrength = 0;
+		        } else if (attrs.neuronModel.tau.receptorStrength < 0.66) {
+		            attrs.neuronModel.tau.receptorStrength = 0.5;
+		        } else {
+		            attrs.neuronModel.tau.receptorStrength = 1.0;
+                }
+		    }
+		    
+		    //determine if a neuron's gene makes it activate by standard neuron or by a gas
+		    //This seems reasonable for some values, but others (at extremes) there seem to be too many
+		    //outliers, for instance with 1%, there are some agents with many gas activated neurons- should be much more rare
+		    
+		    //This current configuration has opposite names so that the lower percentage of gasActivation will be reasonable
+		    //Why this isn't symmetric??????
+		    //TODO - investigate the reason for the asymmetric distribution of probabilities with genes
+		    if (   (float)g->get( attrsGene->gene("ActivationBySynapses") )  < 1.0 - Brain::config.gasnetsGasActivationPercentage ) {
+		        attrs.neuronModel.tau.activatedByGas = 0;
+		    } else {
+		    
+		        float distributionLevel =  Brain::config.gasnetsGasActivationPercentage / Brain::config.gasnetsNumGases ;
+		        //starting at gas 1
+		        attrs.neuronModel.tau.activatedByGas = 1 +
+		            floor(   (  (float)g->get(attrsGene->gene("ActivationBySynapses")) - (1.0 - Brain::config.gasnetsGasActivationPercentage)  )   /  distributionLevel);
+
+		        //catch for the case when an EXACT 1 is returned by the gene
+		        if (attrs.neuronModel.tau.activatedByGas >  Brain::config.gasnetsNumGases) {
+		          attrs.neuronModel.tau.activatedByGas -= 1;
+		        }
+		        
+		    }
+	        
+	        attrs.neuronModel.tau.emissionRate = g->get( attrsGene->gene("EmissionRate") ); 				//gasnets
+	        attrs.neuronModel.tau.emissionRadius = g->get( attrsGene->gene("EmissionRadius") ); 			//gasnets
+        }
+        
+        if (Brain::config.geneticNeuronType) {
+            attrs.neuronModel.tau.type = g->get( attrsGene->gene("GeneticType") ) ; 			//gasnets
+            
+        }
+        
 		attrs.neuronModel.tau.bias = g->get( attrsGene->gene("Bias") );
 		attrs.neuronModel.tau.tau = g->get( attrsGene->gene("Tau") );
 		break;
 	case Brain::Configuration::SPIKING:
 		if( Brain::config.Spiking.enableGenes )
 		{
+		    if (Brain::config.gasnetsEnabled) {
+    		    attrs.neuronModel.spiking.receptorStrength = g->get( attrsGene->gene("ReceptorStrength") ); //gasnets
+    		    
+    		    if (Brain::config.gasnetsDiscreteReceptorStrength) {
+		          if (attrs.neuronModel.spiking.receptorStrength < 0.33) {
+    		            attrs.neuronModel.spiking.receptorStrength = 0;
+	    	        } else if (attrs.neuronModel.spiking.receptorStrength < 0.66) {
+		                attrs.neuronModel.spiking.receptorStrength = 0.5;
+                    } else {
+		                attrs.neuronModel.spiking.receptorStrength = 1.0;
+                    }
+                }
+
+                if (   (float)g->get( attrsGene->gene("ActivationBySynapses") )  < 1.0 - Brain::config.gasnetsGasActivationPercentage ) {
+		          attrs.neuronModel.spiking.activatedByGas = 0;
+                } else {
+                
+                    float distributionLevel =  Brain::config.gasnetsGasActivationPercentage / Brain::config.gasnetsNumGases ;
+                    //starting at gas 1
+                    attrs.neuronModel.spiking.activatedByGas = 1 +
+                        floor(   (  (float)g->get(attrsGene->gene("ActivationBySynapses")) - (1.0 - Brain::config.gasnetsGasActivationPercentage)  )   /  distributionLevel);
+
+                    //catch for the case when an EXACT 1 is returned by the gene
+                    if (attrs.neuronModel.spiking.activatedByGas >  Brain::config.gasnetsNumGases) {
+                      attrs.neuronModel.spiking.activatedByGas -= 1;
+                    }
+                }
+    		    
+	    	    attrs.neuronModel.spiking.emissionRate = g->get( attrsGene->gene("EmissionRate") ); 		//gasnets
+	    	    attrs.neuronModel.spiking.emissionRadius = g->get( attrsGene->gene("EmissionRadius") ); 	//gasnets
+	    	    
+            }
 			attrs.neuronModel.spiking.bias = g->get( attrsGene->gene("Bias") );
 			attrs.neuronModel.spiking.SpikingParameter_a = g->get( attrsGene->gene("SpikingParameterA") );
 			attrs.neuronModel.spiking.SpikingParameter_b = g->get( attrsGene->gene("SpikingParameterB") );
 			attrs.neuronModel.spiking.SpikingParameter_c = g->get( attrsGene->gene("SpikingParameterC") );
 			attrs.neuronModel.spiking.SpikingParameter_d = g->get( attrsGene->gene("SpikingParameterD") );
 		}
+
+		if (Brain::config.geneticNeuronType) {
+            attrs.neuronModel.spiking.type = g->get( attrsGene->gene("GeneticType") ) ;
+		}
+		
 		break;
 	default:
 		assert( false );
@@ -853,8 +1174,10 @@ void SheetsGenomeSchema::createReceptiveFields( SheetsModel *model, SheetsGenome
 
 		int id = g->get( sheetGene->gene("Id") );
 		Sheet *sheet = model->getSheet( id );
+		
 		if( sheet == NULL )
 			continue;
+			
 
 		vector<const char*> vectorNames = { "SourceReceptiveFields", "TargetReceptiveFields" };
 
@@ -885,6 +1208,7 @@ void SheetsGenomeSchema::createReceptiveFields( SheetsModel *model, SheetsGenome
 			}
 		}
 	}
+	
 }
 
 void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
@@ -921,10 +1245,31 @@ void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
 	function<bool (Neuron *, Sheet::ReceptiveFieldNeuronRole)> neuronPredicate =
 		[this, synapseType]( Neuron *neuron, Sheet::ReceptiveFieldNeuronRole role )
 		{
-			if( neuron->attrs.type == Neuron::Attributes::EI )
-				return true;
+		    if (Brain::config.gasnetsEnabled) 
+		    {
+		        
+		        if( neuron->attrs.type == Neuron::Attributes::EI && (getNeuronType( synapseType, role ) == Neuron::Attributes::EI
+			                                                    || getNeuronType( synapseType, role ) == Neuron::Attributes::I 
+			                                                    || getNeuronType( synapseType, role ) == Neuron::Attributes::E)  ) //gasnets
+                    return true;
+            
+                //if the type is not a standard neuron, then we want to say it matches the generic type
+                if (neuron->attrs.type != Neuron::Attributes::EI 
+                        && neuron->attrs.type != Neuron::Attributes::E 
+                        && neuron->attrs.type != Neuron::Attributes::I 
+                        && getNeuronType( synapseType, role ) == Neuron::Attributes::M ) 
+                {
+                    return true;  
+                }
 
-			return getNeuronType( synapseType, role ) == neuron->attrs.type;
+            } 
+            else 
+            {
+                
+                if( neuron->attrs.type == Neuron::Attributes::EI )
+                                              return true;	
+            }
+            return getNeuronType( synapseType, role ) == neuron->attrs.type;
 		};
 
 	// ---
@@ -942,7 +1287,7 @@ void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
 			attrs.weight *= -1;
 			attrs.lrate *= -1;
 		}
-
+		
 		synapseCreated =
 			[attrs] ( Synapse *synapse )
 			{
@@ -964,6 +1309,7 @@ void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
 							  otherSheet,
 							  neuronPredicate,
 							  synapseCreated );
+							  
 }
 
 Synapse::Attributes SheetsGenomeSchema::decodeSynapseAttrs( SheetsGenome *g,
@@ -977,3 +1323,4 @@ Synapse::Attributes SheetsGenomeSchema::decodeSynapseAttrs( SheetsGenome *g,
 
 	return attrs;
 }
+

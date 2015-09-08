@@ -1,10 +1,10 @@
-#include "Gene.h"
+#include "genome/Gene.h"
 
 #include <assert.h>
 
-#include "Genome.h"
-#include "GenomeLayout.h"
-#include "GenomeSchema.h"
+#include "genome/Genome.h"
+#include "genome/GenomeLayout.h"
+#include "genome/GenomeSchema.h"
 #include "utils/misc.h"
 
 using namespace genome;

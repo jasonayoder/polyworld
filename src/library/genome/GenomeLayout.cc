@@ -1,5 +1,3 @@
-//TODO: neurgroup layout needs to be moved into the groups directory.
-
 #include "GenomeLayout.h"
 
 #include <assert.h>
@@ -8,8 +6,8 @@
 
 #include <iostream>
 
-#include "Gene.h"
-#include "GenomeSchema.h"
+#include "genome/Gene.h"
+#include "genome/GenomeSchema.h"
 #include "genome/groups/GroupsGene.h"
 #include "genome/groups/GroupsGenomeSchema.h"
 #include "utils/misc.h"

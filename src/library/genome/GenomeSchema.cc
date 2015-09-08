@@ -1,12 +1,12 @@
-#include "GenomeSchema.h"
+#include "genome/GenomeSchema.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
 #include "agent/agent.h"
 #include "agent/Metabolism.h"
-#include "genome/sheets/SheetsGenomeSchema.h"
 #include "utils/misc.h"
+#include "genome/sheets/SheetsGenomeSchema.h"
 
 using namespace genome;
 using namespace std;
