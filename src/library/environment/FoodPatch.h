@@ -59,11 +59,12 @@ class FoodPatch : public Patch
 
 	bool removeFood;
 	bool foodGrown;
+	float foodFraction; //jasoyode dyn foodFraction	
 
  private:
 	bool on;
 	bool onPrev;
-	float foodFraction; //jasoyode dyn foodFraction
+
 	const FoodType *foodType;
 };
 
