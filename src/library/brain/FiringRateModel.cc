@@ -42,6 +42,16 @@ void FiringRateModel::init_derived( float initial_activation )
     		}
         }
     }
+    
+    //Initialize the global gas concentrations if in global flat mode
+    if ( Brain::config.gasnetsGlobalFlatMode) {
+        for (int i=0; i < 6; i++) {
+            _gasConcentration[i]=0;
+        }
+    }
+                                                                                                    
+    
+    
 }
 
 void FiringRateModel::set_neuron( int index,
@@ -192,7 +202,7 @@ void FiringRateModel::update( bool bprint )
             if ( neurongasesconcentrations == NULL) {
                 cout << "neurongasesconcentrations == NULL\n";
                 return;
-        	}
+              }
         } else { 
         //GLOBAL FLAT MODE
             for (int i=0; i< Brain::config.gasnetsNumGases; i++) {
@@ -259,8 +269,18 @@ void FiringRateModel::update( bool bprint )
                     receptorLevel = neuron[synapse[k].toneuron].receptorStrength;
                 }
                 
+                
+                if (gasActivationImpact != gasActivationImpact) {
+                  cout << "gasActivationImpact: " << gasActivationImpact << "\n";
+                  cout << "synapse[k].toneuron: " << synapse[k].toneuron << "\n";
+                  cout << "receptorLevel:       " << receptorLevel << "\n";
+                  //We only reach this point if gasActivationImpact is "nan" break it here if so
+                  assert(false);
+                }
+                
                 //include receptorLevel in calculation, if its receptorLevel=1 it won't change anything
                 gasActivationImpact = 1 + (receptorLevel * (gasActivationImpact - 1)); //this will adjust based on the amount of gas and receptors
+
                 
                 if (Brain::config.gasnetsDebugMode > 4 && gasActivationImpact != 1 && debugFirstOut == -1) {
                     debugFirstOut = i;
@@ -603,7 +623,7 @@ void FiringRateModel::update( bool bprint )
                     increaseGasConcentration(gasIndex, newactivation  );
                     //gas emitting neurons take the input signal and use it to regulate their gas emissions, 
                     //not their neural activations, which should not do anything anyway
-                    newneuronactivation[i] = 0;
+                    newneuronactivation[i] = 0.0;
                     
                 } else {
                     //standard neurons

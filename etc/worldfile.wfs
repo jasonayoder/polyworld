@@ -461,15 +461,15 @@ Domains {
       CenterX {
         type    Float
         default 0.5
-        exmin   0.0
-        exmax   1.0
+        exmin   -0.1
+        exmax   1.1
       }
 
       CenterZ {
         type    Float
         default 0.5
-        exmin   0.0
-        exmax   1.0
+        exmin   -0.1
+        exmax   1.1
       }
 
       SizeX {
@@ -619,15 +619,15 @@ Domains {
             CenterX {
               type    Float
               default 0.5
-              exmin   0.0
-              exmax   1.0
+              exmin   -0.1
+              exmax   1.1
             }
 
             CenterZ {
               type    Float
               default 0.5
-              exmin   0.0
-              exmax   1.0
+              exmin   -0.1
+              exmax   1.1
             }
 
             SizeX {
@@ -703,15 +703,15 @@ Domains {
             CenterX {
               type    Float
               default 0.5
-              exmin   0.0
-              exmax   1.0
+              min   -0.1
+              max   1.1
             }
 
             CenterZ {
               type    Float
               default 0.5
-              #exmin   0.0
-              #exmax   1.0
+              min   -0.1
+              max   1.1
             }
 
             SizeX {

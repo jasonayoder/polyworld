@@ -30,8 +30,9 @@ Default_CXX = {'linux': 'g++',
 ######################################################################
 def main():
     # sanity check
-    if not check_exit('which bash'):
-        sys.exit("Failed locating bash!")
+#taken off for br2 - jasonayoder
+#    if not check_exit('which bash'):
+#        sys.exit("Failed locating bash!")
     
     #
     # Parse command-line
@@ -77,9 +78,10 @@ def main():
     else:
         config['cxx'] = config['cxx'][0]
     print 'CXX:', config['cxx']
-    
-    if not check_exit('which '+config['cxx']):
-        sys.exit('Cannot locate compiler')
+
+#taken off for br2 - jasonayoder    
+#    if not check_exit('which '+config['cxx']):
+#        sys.exit('Cannot locate compiler')
     
     if 'clang' in config['cxx']:
         config['toolchain'] = 'llvm'
