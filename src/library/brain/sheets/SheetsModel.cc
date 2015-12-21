@@ -909,7 +909,13 @@ void SheetsModel::addNonCulledNeurons( SheetVector &sheets )
 						//if we are not touched by input and not potentially gas activated, we can never get activated!
 						} else {
 						
-							removeNeuronSynapsesAndGasChannels( neuron);	
+							neuron->id = (int)_neurons.size();
+							_neurons.push_back( neuron );
+							//Was getting segfaults because the gasChannels were still created
+							//Need to delete the GasChannels properly, because this was breaking
+							//Including these just wastes computation, but functionally things are
+							//still going to be equivalent
+							//removeNeuronSynapsesAndGasChannels( neuron);	
 						}
 						
 					} else {
