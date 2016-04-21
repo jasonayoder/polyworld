@@ -34,6 +34,9 @@ class SheetsBrain : public Brain
 
 	int getNumInternalSheets();
 	int getNumInternalNeurons();
+	int getNumInternalNeuronsOfType(int type); //for stats
+	int getNumGasChannelsOfType( int gasIndex ); //for stats
+	
 	int getNumSynapses( sheets::Sheet::Type from, sheets::Sheet::Type to );
 	int getNumGasChannels( sheets::Sheet::Type from, sheets::Sheet::Type to );
 
@@ -42,6 +45,10 @@ class SheetsBrain : public Brain
 
 	int _numInternalSheets;
 	int _numInternalNeurons;
+	
+	int _numInternalNeuronsOfType [10];// for stats
+	int _numGasChannelsOfType [10]; // for stats
+	
 	int _numSynapses[sheets::Sheet::__NTYPES][sheets::Sheet::__NTYPES];
 	int _numGasChannels[sheets::Sheet::__NTYPES][sheets::Sheet::__NTYPES];
 	
@@ -49,5 +56,10 @@ class SheetsBrain : public Brain
 
 inline int SheetsBrain::getNumInternalSheets() { return _numInternalSheets; }
 inline int SheetsBrain::getNumInternalNeurons() { return _numInternalNeurons; }
+inline int SheetsBrain::getNumInternalNeuronsOfType(int type) {   return _numInternalNeuronsOfType[type]; }
+
 inline int SheetsBrain::getNumSynapses( sheets::Sheet::Type from, sheets::Sheet::Type to ) { return _numSynapses[from][to]; }
 inline int SheetsBrain::getNumGasChannels( sheets::Sheet::Type from, sheets::Sheet::Type to ) { return _numGasChannels[from][to]; }
+inline int SheetsBrain::getNumGasChannelsOfType( int gasIndex ) { return _numGasChannelsOfType[gasIndex]; }
+
+

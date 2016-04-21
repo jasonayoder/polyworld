@@ -926,6 +926,37 @@ void SheetsGenomeSchema::createSheet( SheetsModel *model, SheetsGenome *g, Conta
                                 cout << neuron->sheetIndex.a << "," << neuron->sheetIndex.b << ")\n";
                               }
                               
+                          } else if(Brain::config.gasnetsNumGases == 4) {
+                              
+                              switch ( (neuron->sheetIndex.a + neuron->sheetIndex.b*neuronCount.a) % 6) 
+                              {
+                                case 0:
+                                  neuron->attrs.type = Neuron::Attributes::G3;
+                                  break;
+                                case 4:
+                                  neuron->attrs.type = Neuron::Attributes::E;
+                                  break;
+                                case 2:
+                                  neuron->attrs.type = Neuron::Attributes::G4;
+                                  break;
+                                case 5:
+                                  neuron->attrs.type = Neuron::Attributes::I;
+                                  break;
+                                case 1:
+                                  neuron->attrs.type = Neuron::Attributes::G1;
+                                  break;
+                                case 3:
+                                  neuron->attrs.type = Neuron::Attributes::G2;
+                                  break;
+                                default:
+                                  assert(false);
+                              }
+                              
+                              if (Brain::config.gasnetsDebugMode > 2) {
+                                cout << "   GasnetsDebugMode[3]: Neuron created (type: "<<neuron->attrs.type <<") @ (" ;
+                                cout << neuron->sheetIndex.a << "," << neuron->sheetIndex.b << ")\n";
+                              }
+                          
                           } else {
                               cout <<"MORE THAN TWO gases????";
                               assert(false);

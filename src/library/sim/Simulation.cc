@@ -1736,6 +1736,35 @@ void TSimulation::DeathAndStats( void )
 	case Brain::Configuration::Sheets:
 		fCurrentBrainStats.sheets.internalSheetCount.reset();
 		fCurrentBrainStats.sheets.internalNeuronCount.reset();
+		fCurrentBrainStats.sheets.internalNeuronCountE.reset();
+		fCurrentBrainStats.sheets.internalNeuronCountI.reset();
+		fCurrentBrainStats.sheets.internalNeuronCountEI.reset();
+		if ( Brain::config.gasnetsNumGases > 0) {
+			fCurrentBrainStats.sheets.internalNeuronCountG1.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG1.reset();
+		}
+		if ( Brain::config.gasnetsNumGases > 1) {
+			fCurrentBrainStats.sheets.internalNeuronCountG2.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG2.reset();
+		} 
+		if ( Brain::config.gasnetsNumGases > 2) {
+			fCurrentBrainStats.sheets.internalNeuronCountG3.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG3.reset();
+		} 
+		if ( Brain::config.gasnetsNumGases > 3) {
+			fCurrentBrainStats.sheets.internalNeuronCountG4.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG4.reset();
+		} 
+		if ( Brain::config.gasnetsNumGases > 4) {		                
+			fCurrentBrainStats.sheets.internalNeuronCountG5.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG5.reset();
+		} 
+		if ( Brain::config.gasnetsNumGases > 5) {		
+			fCurrentBrainStats.sheets.internalNeuronCountG6.reset();
+			fCurrentBrainStats.sheets.gasChannelCountG6.reset();
+		} 
+
+		
 		for( SheetSynapseType &type : SheetSynapseTypes )
 			fCurrentBrainStats.sheets.synapseCount[ type.from ][ type.to ].reset();
 		break;
@@ -1760,6 +1789,37 @@ void TSimulation::DeathAndStats( void )
 				SheetsBrain *brain = dynamic_cast<SheetsBrain *>( c->GetBrain() );
 				fCurrentBrainStats.sheets.internalSheetCount.add( brain->getNumInternalSheets() );
 				fCurrentBrainStats.sheets.internalNeuronCount.add( brain->getNumInternalNeurons() );
+				fCurrentBrainStats.sheets.internalNeuronCountE.add( brain->getNumInternalNeuronsOfType(0) );
+				fCurrentBrainStats.sheets.internalNeuronCountI.add( brain->getNumInternalNeuronsOfType(1) );
+				fCurrentBrainStats.sheets.internalNeuronCountEI.add( brain->getNumInternalNeuronsOfType(2) );
+				
+				if ( Brain::config.gasnetsNumGases > 0) {
+					fCurrentBrainStats.sheets.internalNeuronCountG1.add( brain->getNumInternalNeuronsOfType(3) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(0) );
+				}
+				if ( Brain::config.gasnetsNumGases > 1) {
+					fCurrentBrainStats.sheets.internalNeuronCountG2.add( brain->getNumInternalNeuronsOfType(4) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(1) );
+				} 
+				if ( Brain::config.gasnetsNumGases > 2) {
+					fCurrentBrainStats.sheets.internalNeuronCountG3.add( brain->getNumInternalNeuronsOfType(5) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(2) );
+				} 
+				if ( Brain::config.gasnetsNumGases > 3) {
+					fCurrentBrainStats.sheets.internalNeuronCountG4.add( brain->getNumInternalNeuronsOfType(6) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(3) );
+				} 
+				if ( Brain::config.gasnetsNumGases > 4) {		                
+					fCurrentBrainStats.sheets.internalNeuronCountG5.add( brain->getNumInternalNeuronsOfType(7) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(4) );
+				} 
+				if ( Brain::config.gasnetsNumGases > 5) {		
+					fCurrentBrainStats.sheets.internalNeuronCountG6.add( brain->getNumInternalNeuronsOfType(8) );
+					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(5) );
+				} 
+				
+				
+				
 				for( SheetSynapseType &type : SheetSynapseTypes )
 					fCurrentBrainStats.sheets.synapseCount[type.from][type.to].add( brain->getNumSynapses(type.from, type.to) );
 			}
@@ -4672,6 +4732,13 @@ void TSimulation::Dump()
 //---------------------------------------------------------------------------
 short TSimulation::WhichDomain(float x, float z, short d)
 {
+	// debug domain error
+	//char errorString2[256];
+	//sprintf(errorString2,"%s (%g, %g) %s %d, %ld",
+	//		"Domain for point at (x, z) = ",
+	//		x, z, " & d, nd = ", d, fNumDomains);
+	//cout << errorString2 << "\n";
+	//
 	for (short i = 0; i < fNumDomains; i++)
 	{
 		if (((x >= fDomains[i].startX) && (x <= fDomains[i].endX)) &&
@@ -5021,6 +5088,41 @@ void TSimulation::getStatusText( StatusText& statusText,
 	case Brain::Configuration::Sheets:
 		addStat( "CurInternalSheets", fCurrentBrainStats.sheets.internalSheetCount );
 		addStat( "CurInternalNeurons", fCurrentBrainStats.sheets.internalNeuronCount );
+		
+		//For number of types...
+		addStat( "CurInternalNeuronsOfTypeE",  fCurrentBrainStats.sheets.internalNeuronCountE );
+		addStat( "CurInternalNeuronsOfTypeI",  fCurrentBrainStats.sheets.internalNeuronCountI );
+		addStat( "CurInternalNeuronsOfTypeEI",  fCurrentBrainStats.sheets.internalNeuronCountEI );
+		
+		if ( Brain::config.gasnetsNumGases > 0) {
+			addStat( "CurInternalNeuronsOfTypeG1",  fCurrentBrainStats.sheets.internalNeuronCountG1 );
+			addStat( "CurGasChannelsOfTypeG1",  fCurrentBrainStats.sheets.gasChannelCountG1 );
+		}
+		if ( Brain::config.gasnetsNumGases > 1) {
+			addStat( "CurInternalNeuronsOfTypeG2",  fCurrentBrainStats.sheets.internalNeuronCountG2 );
+			addStat( "CurGasChannelsOfTypeG2",  fCurrentBrainStats.sheets.gasChannelCountG2 );
+		} 
+		if ( Brain::config.gasnetsNumGases > 2) {
+			addStat( "CurInternalNeuronsOfTypeG3",  fCurrentBrainStats.sheets.internalNeuronCountG3 );
+			addStat( "CurGasChannelsOfTypeG3",  fCurrentBrainStats.sheets.gasChannelCountG3 );
+		} 
+		if ( Brain::config.gasnetsNumGases > 3) {
+			addStat( "CurInternalNeuronsOfTypeG4",  fCurrentBrainStats.sheets.internalNeuronCountG4 );
+			addStat( "CurGasChannelsOfTypeG4",  fCurrentBrainStats.sheets.gasChannelCountG4 );
+		} 
+		if ( Brain::config.gasnetsNumGases > 4) {		                
+			addStat( "CurInternalNeuronsOfTypeG5",  fCurrentBrainStats.sheets.internalNeuronCountG5 );
+			addStat( "CurGasChannelsOfTypeG5",  fCurrentBrainStats.sheets.gasChannelCountG5 );
+		} 
+		if ( Brain::config.gasnetsNumGases > 5) {		
+			addStat( "CurInternalNeuronsOfTypeG6",  fCurrentBrainStats.sheets.internalNeuronCountG6 );
+			addStat( "CurGasChannelsOfTypeG6",  fCurrentBrainStats.sheets.gasChannelCountG6 );
+		} 
+		if ( Brain::config.gasnetsNumGases > 6) {		
+			//future gases
+		}
+		
+		
 		for( SheetSynapseType &type : SheetSynapseTypes )
 		{
 			char name[ 64 ];

@@ -29,7 +29,8 @@ class NeuronModel
 
 		long numGasChannels; //gasnets
 		long numSynapses;
-		
+		int numInternalNeuronsOfType[10]; //for stats
+		int numGasChannelsOfType[10];  //for stats
 
 		inline int getFirstInputNeuron() { return 0; }
 		inline int getFirstOutputNeuron() { return numInputNeurons; }

@@ -61,10 +61,15 @@ SheetsBrain::SheetsBrain( NervousSystem *cns, SheetsGenome *genome, SheetsModel 
 : Brain( cns )
 , _numInternalSheets( 0 )
 , _numInternalNeurons( 0 )
+, _numInternalNeuronsOfType {0,0,0,0,0,0,0,0,0,0} //need to initialize for stats
+, _numGasChannelsOfType {0,0,0,0,0,0,0,0,0,0} //need to initialize for stats
+
 {
 	memset( _numSynapses, 0, sizeof(_numSynapses) );
 	
 	memset( _numGasChannels, 0, sizeof(_numGasChannels) ); //gaschannels
+	
+	
 
 	grow( genome, model );
 	delete model;
@@ -82,7 +87,6 @@ SheetsBrain::~SheetsBrain()
 //---------------------------------------------------------------------------
 void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 {
-
 	// ---
 	// --- Configure Neuron Count
 	// ---
@@ -109,7 +113,7 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 		itfor( NeuronVector, model->getNeurons(), it )
 		{
 			Neuron *neuron = *it;
-			
+			int gasChannelCount = 0;
 			
 			switch( neuron->sheet->getType() )
 			{
@@ -124,9 +128,13 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                 switch (neuron->attrs.type) 
                 {
                 case Neuron::Attributes::E:
+                  _numInternalNeuronsOfType[0]++;
+                  break;
                 case Neuron::Attributes::I:
+                  _numInternalNeuronsOfType[1]++;
+                  break;
                 case Neuron::Attributes::EI:
-                  //do nothing not gas producing
+                  _numInternalNeuronsOfType[2]++;
                   break;
                 case Neuron::Attributes::G1:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -135,7 +143,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G1 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  _numInternalNeuronsOfType[3]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[0]+= gasChannelCount;
                   break;
                 case Neuron::Attributes::G2:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -144,9 +155,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G2 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
-                  
+                  _numInternalNeuronsOfType[4]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[1]+= gasChannelCount;
                   break;
                 case Neuron::Attributes::G3:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -155,7 +167,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G3 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  _numInternalNeuronsOfType[5]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[2]+= gasChannelCount;
                   break;
                 case Neuron::Attributes::G4:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -164,7 +179,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G4 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  _numInternalNeuronsOfType[6]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[3]+= gasChannelCount;
                   break;
                 case Neuron::Attributes::G5:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -173,7 +191,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G5 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  _numInternalNeuronsOfType[7]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[4]+= gasChannelCount;        
                   break;
                 case Neuron::Attributes::G6:
                   if (Brain::config.gasnetsDebugMode > 2) { 
@@ -182,7 +203,10 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
                       cout << "G6 Neuron having GasChannels added \n";
                   }
                   //MUST ADD TO DIMS OR YOU WILL GET SEGFAULTS
-                  _dims.numGasChannels += neuron->sheet->addGasChannels(neuron, model);
+                  _numInternalNeuronsOfType[8]++;
+                  gasChannelCount = neuron->sheet->addGasChannels(neuron, model);
+                  _dims.numGasChannels += gasChannelCount;
+                  _numGasChannelsOfType[5]+= gasChannelCount;
                   break;
                 default:
                   assert(false); //should not be M - this is a generic set - see comments in SheetsGenomeSchema.cp
@@ -216,7 +240,6 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 			{
 				_numInternalSheets++;
 				_numInternalNeurons += sheetNeuronCount[sheetId];
-
 			}
 		}
 	}

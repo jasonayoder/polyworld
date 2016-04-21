@@ -412,6 +412,24 @@ private:
 		{
 			Stat internalSheetCount;
 			Stat internalNeuronCount;
+			Stat internalNeuronCountE;
+			Stat internalNeuronCountI;
+			Stat internalNeuronCountEI;
+			
+			Stat internalNeuronCountG1;
+			Stat internalNeuronCountG2;
+			Stat internalNeuronCountG3;
+			Stat internalNeuronCountG4;
+			Stat internalNeuronCountG5;
+			Stat internalNeuronCountG6;
+			
+			Stat gasChannelCountG1;
+			Stat gasChannelCountG2;
+			Stat gasChannelCountG3;
+			Stat gasChannelCountG4;
+			Stat gasChannelCountG5;
+			Stat gasChannelCountG6;
+			
 			Stat **synapseCount;
 		} sheets;
 	} fCurrentBrainStats;

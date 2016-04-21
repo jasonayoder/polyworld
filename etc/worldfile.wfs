@@ -450,7 +450,8 @@ Domains {
   ]
 
   exmin   0
-  max     10 # This number comes from the MAXDOMAINS symbol in Simulation.h. It is critical they match.
+  #jasonayoder changed to allow large number of separated barriers
+  max     100 # This number comes from the MAXDOMAINS symbol in Simulation.h. It is critical they match.
 
   element {
     type    Object
