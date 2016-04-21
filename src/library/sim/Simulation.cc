@@ -1799,23 +1799,23 @@ void TSimulation::DeathAndStats( void )
 				}
 				if ( Brain::config.gasnetsNumGases > 1) {
 					fCurrentBrainStats.sheets.internalNeuronCountG2.add( brain->getNumInternalNeuronsOfType(4) );
-					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(1) );
+					fCurrentBrainStats.sheets.gasChannelCountG2.add( brain->getNumGasChannelsOfType(1) );
 				} 
 				if ( Brain::config.gasnetsNumGases > 2) {
 					fCurrentBrainStats.sheets.internalNeuronCountG3.add( brain->getNumInternalNeuronsOfType(5) );
-					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(2) );
+					fCurrentBrainStats.sheets.gasChannelCountG3.add( brain->getNumGasChannelsOfType(2) );
 				} 
 				if ( Brain::config.gasnetsNumGases > 3) {
 					fCurrentBrainStats.sheets.internalNeuronCountG4.add( brain->getNumInternalNeuronsOfType(6) );
-					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(3) );
+					fCurrentBrainStats.sheets.gasChannelCountG4.add( brain->getNumGasChannelsOfType(3) );
 				} 
 				if ( Brain::config.gasnetsNumGases > 4) {		                
 					fCurrentBrainStats.sheets.internalNeuronCountG5.add( brain->getNumInternalNeuronsOfType(7) );
-					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(4) );
+					fCurrentBrainStats.sheets.gasChannelCountG5.add( brain->getNumGasChannelsOfType(4) );
 				} 
 				if ( Brain::config.gasnetsNumGases > 5) {		
 					fCurrentBrainStats.sheets.internalNeuronCountG6.add( brain->getNumInternalNeuronsOfType(8) );
-					fCurrentBrainStats.sheets.gasChannelCountG1.add( brain->getNumGasChannelsOfType(5) );
+					fCurrentBrainStats.sheets.gasChannelCountG6.add( brain->getNumGasChannelsOfType(5) );
 				} 
 				
 				
