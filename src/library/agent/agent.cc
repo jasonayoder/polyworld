@@ -677,15 +677,28 @@ void agent::eat( food* f,
 		
 		return_actuallyEat =
 			f->eat(trytoeat)
-			* fMetabolism->energyPolarity
+			* fMetabolism->energyPolarity //remove this for cardboard... add details to stats
 			* f->getEnergyPolarity()
 			* fMetabolism->eatMultiplier;
-
+                
+                
 		// The eatMultiplier could have made us exceed our limits.
 		return_actuallyEat.constrain( fEnergy * -1, fMaxEnergy - fEnergy );
+		
+		//Show sthat energy is working as desired
+		//cout << "trytoeat: " << f->eat(trytoeat) << "\n";
+		//cout << "return_actuallyEat: " << return_actuallyEat << "\n";
+		
 
 		fEnergy += return_actuallyEat;
 		fFoodEnergy += return_actuallyEat;
+		//TODO
+		//stat and stat recent
+		//qty of food and poison consumed...
+		//food poison ratio
+		//cardboard getEnergyPolarity() == 0
+		
+		
 
 	#ifdef OF1
 		// this isn't right anymore... it's from before multi-nutrients.
