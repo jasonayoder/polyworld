@@ -262,14 +262,14 @@ void SheetsGenomeSchema::define()
 		vector<OutputSheetDef> defs =
 			{
 				// Name				Enabled
-				{ "Eat",			true },
-				{ "Mate",			true },
-				{ "Fight",			true },
-				{ "Speed",			true },
-				{ "Yaw",			true },
+				{ "Eat",			agent::config.enableEat },
+				{ "Mate",			agent::config.enableMate },
+				{ "Fight",			agent::config.enableFight },
+				{ "Speed",			agent::config.enableSpeed },
+				{ "Yaw",			agent::config.enableYaw },
 				{ "YawOppose",		agent::config.yawEncoding == agent::YE_OPPOSE },
-				{ "Light",			true },
-				{ "Focus",			true },
+				{ "Light",			agent::config.enableLight },
+				{ "Focus",			agent::config.enableFocus },
 				{ "VisionPitch",	agent::config.enableVisionPitch },
 				{ "VisionYaw",		agent::config.enableVisionYaw },
 				{ "Give",			agent::config.enableGive },

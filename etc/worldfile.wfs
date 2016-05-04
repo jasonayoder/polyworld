@@ -1043,6 +1043,47 @@ EnableVisionYaw {
   default False
 }
 
+
+###Optional Output Neurons
+
+EnableEat {
+  type    Bool
+  default True
+}
+
+EnableMate {
+  type    Bool
+  default True
+}
+
+EnableFight {
+  type    Bool
+  default True
+}
+
+EnableSpeed {
+  type    Bool
+  default True
+}
+
+EnableYaw {
+  type    Bool
+  default True
+}
+
+EnableLight {
+  type    Bool
+  default True
+}
+
+EnableFocus {
+  type    Bool
+  default True
+}
+
+###############
+
+
 MinVisionYaw {
   type    Float
   default -90.0

@@ -121,6 +121,16 @@ public:
 		bool	enableVisionPitch;
 		bool	enableVisionYaw;
 		
+		//add new enable/disable
+		bool	enableEat;
+		bool	enableMate;
+		bool	enableFight;
+		bool	enableSpeed;
+		bool	enableYaw;
+		bool	enableLight;
+		bool	enableFocus;
+		
+		
 	} config;
 
 	static void processWorldfile( proplib::Document &doc );
@@ -374,11 +384,11 @@ inline void agent::SetEnergy( const Energy &e ) { fEnergy = e; }
 inline void agent::SetFoodEnergy( const Energy &e ) { fFoodEnergy = e; }
 inline const Energy &agent::GetMaxEnergy() { return fMaxEnergy; }
 inline float agent::NormalizedEnergy() { return fEnergy.sum() / fMaxEnergy.sum(); }
-inline float agent::Eat() { return outputNerves.eat->get(); }
-inline float agent::Fight() { return outputNerves.fight->get(); }
+inline float agent::Eat() {  if (agent::config.enableEat) return outputNerves.eat->get(); else return 0.0; }
+inline float agent::Fight() { if (agent::config.enableFight) return outputNerves.fight->get(); else return 0.0; }
 inline float agent::Give() { return outputNerves.give->get(); }
 inline float agent::Strength() { return geneCache.strength; }
-inline float agent::Mate() { return outputNerves.mate->get(); }
+inline float agent::Mate() { if (agent::config.enableMate) return outputNerves.mate->get(); else return 0.0; }
 inline float agent::Pickup() { return outputNerves.pickup->get(); }
 inline float agent::Drop() { return outputNerves.drop->get(); }
 inline float agent::Size() { return geneCache.size; }
