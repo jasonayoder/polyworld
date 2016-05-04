@@ -82,10 +82,10 @@ void barrier::updateVertices()
 	absCurrPosition = currPosition;
 	if( gRatioPositions )
 	{
-		absCurrPosition.xa *= globals::worldsize;
-		absCurrPosition.za *= globals::worldsize;
-		absCurrPosition.xb *= globals::worldsize;
-		absCurrPosition.zb *= globals::worldsize;
+		absCurrPosition.xa *= globals::worldwidth;
+		absCurrPosition.za *= globals::worlddepth;
+		absCurrPosition.xb *= globals::worldwidth;
+		absCurrPosition.zb *= globals::worlddepth;
 	}
 
 	float x1;

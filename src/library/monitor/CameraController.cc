@@ -63,9 +63,9 @@ void CameraController::setRotationAngle( float angle )
 	RotationParms &parms = rotationState.parms;
 	rotationState.angle = angle;
 	float camrad = rotationState.angle * DEGTORAD;
-	camera.settranslation( (0.5 + parms.radius * sin(camrad)) * globals::worldsize,
-						   parms.height * globals::worldsize,
-						   (-0.5 + parms.radius * cos(camrad)) * globals::worldsize );
+	camera.settranslation( (0.5 + parms.radius * sin(camrad)) * globals::camerax, //TODO SWAP?
+						   parms.height * globals::cameray,
+						   (-0.5 + parms.radius * cos(camrad)) * globals::cameraz );
 }
 
 void CameraController::setAgentTrackingTarget()
@@ -78,7 +78,7 @@ void CameraController::setAgentTrackingTarget()
 		{
 		case AgentTrackingParms::OVERHEAD:
 			camera.SetRotation( 0.0, -90, 0.0 );
-			camera.settranslation( target->x(), 0.2 * globals::worldsize, target->z() );
+			camera.settranslation( target->x(), 0.2 * globals::cameray, target->z() ); //SWAP?
 			break;
 		case AgentTrackingParms::POV:
 			{

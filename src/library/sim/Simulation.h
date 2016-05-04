@@ -388,8 +388,14 @@ private:
 	float fTotalFoodEnergyOut;
 	float fAverageFoodEnergyIn;
 	float fAverageFoodEnergyOut;
+	
+	//need to add separate values to track nutrients and poison
+	
 	Energy fEnergyEaten;
 	Energy fTotalEnergyEaten;
+	Energy fPoisonEaten;
+	Energy fTotalPoisonEaten;
+	
 	float fEat2Consume; // (converts eat neuron value to energy consumed)
 	int fFoodPatchOuterRange;
 	float fMinFoodEnergyAtDeath;

@@ -681,24 +681,11 @@ void agent::eat( food* f,
 			* f->getEnergyPolarity()
 			* fMetabolism->eatMultiplier;
                 
-                
 		// The eatMultiplier could have made us exceed our limits.
 		return_actuallyEat.constrain( fEnergy * -1, fMaxEnergy - fEnergy );
 		
-		//Show sthat energy is working as desired
-		//cout << "trytoeat: " << f->eat(trytoeat) << "\n";
-		//cout << "return_actuallyEat: " << return_actuallyEat << "\n";
-		
-
 		fEnergy += return_actuallyEat;
 		fFoodEnergy += return_actuallyEat;
-		//TODO
-		//stat and stat recent
-		//qty of food and poison consumed...
-		//food poison ratio
-		//cardboard getEnergyPolarity() == 0
-		
-		
 
 	#ifdef OF1
 		// this isn't right anymore... it's from before multi-nutrients.
@@ -894,7 +881,7 @@ void agent::SetGraphics()
 	fCamera.SetAspect(fovx * Brain::config.retinaHeight / (agent::config.agentFOV * Brain::config.retinaWidth));
     fCamera.settranslation(0.0, (agent::config.eyeHeight - 0.5) * agent::config.agentHeight, -0.5 * fLengthZ);
 	fCamera.SetNear(.01);
-	fCamera.SetFar(1.5 * globals::worldsize);
+	fCamera.SetFar(1.5 * globals::worlddepth);
 	fCamera.SetFOV(agent::config.agentFOV);
 
 	if( fSimulation->glFogFunction() != 'O' )
@@ -1236,10 +1223,10 @@ float agent::UpdateBody( float moveFitnessParam,
 		{
 			bool collision = false;
 
-			if( fPosition[0] > globals::worldsize )
+			if( fPosition[0] > globals::worldwidth )
 			{
 				collision = true;
-				fPosition[0] = globals::worldsize;
+				fPosition[0] = globals::worldwidth;
 			}
 			else if( fPosition[0] < 0.0 )
 			{
@@ -1247,10 +1234,10 @@ float agent::UpdateBody( float moveFitnessParam,
 				fPosition[0] = 0.0;
 			}
 			
-			if( fPosition[2] < -globals::worldsize )
+			if( fPosition[2] < -globals::worlddepth )
 			{
 				collision = true;
-				fPosition[2] = -globals::worldsize;
+				fPosition[2] = -globals::worlddepth;
 			}
 			else if( fPosition[2] > 0.0 )
 			{
@@ -1271,15 +1258,15 @@ float agent::UpdateBody( float moveFitnessParam,
 		}
 		else if( globals::wraparound )
 		{
-			if( fPosition[0] > globals::worldsize )
-				fPosition[0] -= globals::worldsize;
+			if( fPosition[0] > globals::worldwidth )
+				fPosition[0] -= globals::worldwidth;
 			else if( fPosition[0] < 0.0 )
-				fPosition[0] += globals::worldsize;
+				fPosition[0] += globals::worldwidth;
 			
-			if( fPosition[2] < -globals::worldsize )
-				fPosition[2] += globals::worldsize;
+			if( fPosition[2] < -globals::worlddepth )
+				fPosition[2] += globals::worlddepth;
 			else if( fPosition[2] > 0.0 )
-				fPosition[2] -= globals::worldsize;
+				fPosition[2] -= globals::worlddepth;
 		}
 	} // if( ! BeingCarried() )
 
@@ -1421,13 +1408,13 @@ void agent::AvoidCollisionDirectional( int direction, int solidObjects )
 		if( fabs( dx ) > fabs( dz ) )
 		{
 			float s = dz / dx;
-			xs = LastX()  +  dx / globals::worldsize;
+			xs = LastX()  +  dx / globals::worldwidth; //TODO SWAP?
 			zs = LastZ()  +  s * (xs - LastX());
 		}
 		else
 		{
 			float s = dx / dz;
-			zs = LastZ()  +  dz / globals::worldsize;
+			zs = LastZ()  +  dz / globals::worlddepth;  //TODO SWAP?
 			xs = LastX()  +  s * (zs - LastZ());
 		}
 		float dssquared = (obj->x()-xs)*(obj->x()-xs) + (obj->z()-zs)*(obj->z()-zs);

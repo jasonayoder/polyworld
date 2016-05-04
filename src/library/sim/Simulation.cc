@@ -362,6 +362,8 @@ TSimulation::TSimulation( string worldfilePath )
 	fFoodEnergyIn = 0.0;
 	fFoodEnergyOut = 0.0;
 	fEnergyEaten.zero();
+	fPoisonEaten.zero();
+	
 
 	srand48(fGenomeSeed);
 
@@ -415,6 +417,7 @@ TSimulation::TSimulation( string worldfilePath )
     fTotalFoodEnergyIn = fFoodEnergyIn;
     fTotalFoodEnergyOut = fFoodEnergyOut;
     fTotalEnergyEaten = fEnergyEaten;
+    fTotalPoisonEaten = fPoisonEaten;
     fAverageFoodEnergyIn = 0.0;
     fAverageFoodEnergyOut = 0.0;
 
@@ -521,11 +524,12 @@ TSimulation::~TSimulation()
 
 	for (short id = 0; id < fNumDomains; id++)
 	{
-		if (fDomains[id].fittest)
+		//needed to make this if, else-if to avoid an error where a domain is deleted twice
+		if (fDomains[id].fittest) {
 			delete fDomains[id].fittest;
-
-		if( fDomains[id].fLeastFit )
+		} else if ( fDomains[id].fLeastFit ) {
 			delete[] fDomains[id].fLeastFit;
+		}
 	}
 
 
@@ -638,6 +642,7 @@ void TSimulation::Step()
 	fFoodEnergyIn = 0.0;
 	fFoodEnergyOut = 0.0;
 	fEnergyEaten.zero();
+	fPoisonEaten.zero();
 
 	// Update dynamic properties
 	proplib::CppProperties::update();
@@ -709,6 +714,7 @@ void TSimulation::Step()
 	fTotalFoodEnergyIn += fFoodEnergyIn;
 	fTotalFoodEnergyOut += fFoodEnergyOut;
 	fTotalEnergyEaten += fEnergyEaten;
+	fTotalPoisonEaten += fPoisonEaten;
 
 	fAverageFoodEnergyIn = (float(fStep - 1) * fAverageFoodEnergyIn + fFoodEnergyIn) / float(fStep);
 	fAverageFoodEnergyOut = (float(fStep - 1) * fAverageFoodEnergyOut + fFoodEnergyOut) / float(fStep);
@@ -807,7 +813,7 @@ void TSimulation::InitGround()
 	Resources::loadPolygons( &fGround, "ground" );
 
     fGround.sety(-fGroundClearance);
-    fGround.setscale(globals::worldsize);
+    fGround.setscale(globals::worldsize); //TODO SWAP
     fGround.setcolor(fGroundColor);
     fWorldSet.Add(&fGround);
 }
@@ -870,7 +876,7 @@ void TSimulation::InitAgents()
 #if TestWorld
 			// evenly distribute the agents
 			x = fDomains[id].xleft  +  0.666 * fDomains[id].xsize;
-			z = - globals::worldsize * ((float) (i+1) / (fDomains[id].initNumAgents + 1));
+			z = - globals::worlddepth * ((float) (i+1) / (fDomains[id].initNumAgents + 1));
 #endif
 			if( isSeed )
 			{
@@ -943,8 +949,8 @@ void TSimulation::InitAgents()
 
 		fStage.AddObject(c);
 
-		float x =  0.01 + randpw() * (globals::worldsize - 0.02);
-		float z = -0.01 - randpw() * (globals::worldsize - 0.02);
+		float x =  0.01 + randpw() * (globals::worldwidth - 0.02);
+		float z = -0.01 - randpw() * (globals::worlddepth - 0.02);
 		float y = 0.5 * agent::config.agentHeight;
 		if( isSeed )
 		{
@@ -1172,7 +1178,7 @@ void TSimulation::ReadSeedPositionsFromFile()
 				{
 					string ratiostr = raw.substr(1);
 					float ratio = atof( ratiostr.c_str() );
-					val = ratio * globals::worldsize;
+					val = ratio * globals::worldsize; //TODO SWAP?
 				}
 				else
 				{
@@ -1848,8 +1854,8 @@ void TSimulation::DeathAndStats( void )
 				if ( c->GetEnergy().isDepleted() ||
 					 c->Age() >= c->MaxAge()     ||
 					 ( !globals::blockedEdges && !globals::wraparound &&
-					 	(c->x() < 0.0 || c->x() >  globals::worldsize ||
-						 c->z() > 0.0 || c->z() < -globals::worldsize) ) ||
+					 	(c->x() < 0.0 || c->x() >  globals::worldwidth ||
+						 c->z() > 0.0 || c->z() < -globals::worlddepth) ) ||
 					 c->GetDeathByPatch() )
 				{
 					LifeSpan::DeathReason reason = LifeSpan::DR_NATURAL;
@@ -2051,8 +2057,8 @@ void TSimulation::MateLockstep( void )
 		eenergy.constrain( minenergy, e->GetMaxEnergy() );
 		e->SetEnergy(eenergy);
 		e->SetFoodEnergy(eenergy);
-		float x =  0.01 + randpw() * (globals::worldsize - 0.02);
-		float z = -0.01 - randpw() * (globals::worldsize - 0.02);
+		float x =  0.01 + randpw() * (globals::worldwidth - 0.02);
+		float z = -0.01 - randpw() * (globals::worlddepth - 0.02);
 		float y = 0.5 * agent::config.agentHeight;
 		e->settranslation(x, y, z);
 		float yaw =  360.0 * randpw();
@@ -2266,14 +2272,14 @@ void TSimulation::Mate( agent *c,
 				float yaw = AverageAngles( c->yaw(), d->yaw() );
 				if( fRandomBirthLocation )
 				{
-					float distance = globals::worldsize * fRandomBirthLocationRadius * randpw();
+					float distance = globals::worldsize * fRandomBirthLocationRadius * randpw(); //TODO SWAP
 					float angle = 2*M_PI * randpw();
 
 					x += distance * cosf( angle );
 					z -= distance * sinf( angle );
 
-					x = clamp( x, 0.01, globals::worldsize - 0.01 );
-					z = clamp( z, -globals::worldsize + 0.01, -0.01 );
+					x = clamp( x, 0.01, globals::worldwidth - 0.01 );
+					z = clamp( z, -globals::worlddepth + 0.01, -0.01 );
 				}
 
 				e->settranslation( x, y, z );
@@ -2678,7 +2684,21 @@ void TSimulation::Eat( agent *c, bool *cDied )
 					fEvents->AddEvent( fStep, c->Number(), 'e' );
 
 				FoodEnergyOut( foodEnergyLost );
-				fEnergyEaten += energyEaten;
+				
+				//must split up the nutrient/poison into two energy components
+				Energy nutrients;
+				Energy poison;
+				for (int i=0; i< globals::numEnergyTypes; i++) {
+					if (energyEaten[i] < 0 ) {
+						poison.addAtIndex(i, energyEaten[i] );
+					} else {
+						nutrients.addAtIndex(i, energyEaten[i] );
+					}
+				}
+				fPoisonEaten += poison;
+				fEnergyEaten += nutrients;				
+				
+				
 
 				eatPrint( "at step %ld, agent %ld at (%g,%g) with rad=%g wasted %g units of food at (%g,%g) with rad=%g\n", fStep, c->Number(), c->x(), c->z(), c->radius(), foodEaten, f->x(), f->z(), f->radius() );
 
@@ -2735,7 +2755,20 @@ void TSimulation::Eat( agent *c, bool *cDied )
 						fEvents->AddEvent( fStep, c->Number(), 'e' );
 
 					FoodEnergyOut( foodEnergyLost );
-					fEnergyEaten += energyEaten;
+					
+					//must split up the nutrient/poison into two energy components
+					Energy nutrients;
+					Energy poison;
+					for (int i=0; i< globals::numEnergyTypes; i++) {
+						if (energyEaten[i] < 0 ) {
+							poison.addAtIndex(i, energyEaten[i] );
+						} else {
+							nutrients.addAtIndex(i, energyEaten[i] );
+						}
+					}
+					fPoisonEaten += poison;
+					fEnergyEaten += nutrients;
+					
 
 					eatPrint( "at step %ld, agent %ld at (%g,%g) with rad=%g wasted %g units of food at (%g,%g) with rad=%g\n", fStep, c->Number(), c->x(), c->z(), c->radius(), foodEaten, f->x(), f->z(), f->radius() );
 
@@ -3067,7 +3100,7 @@ void TSimulation::CreateAgents( void )
 				float yaw = randpw() * 360.0;
 			#if TestWorld
 				x = fDomains[id].xleft  +  0.666 * fDomains[id].xsize;
-				z = - globals::worldsize * ((float) (i+1) / (fDomains[id].initNumAgents + 1));
+				z = - globals::worlddepth * ((float) (i+1) / (fDomains[id].initNumAgents + 1));
 				yaw = 95.0;
 			#endif
                 newAgent->settranslation( x, y, z );
@@ -3159,7 +3192,7 @@ void TSimulation::CreateAgents( void )
             newAgent->grow( fMateWait );
 			FoodEnergyIn( newAgent->GetFoodEnergy() );
 
-            newAgent->settranslation(randpw() * globals::worldsize, 0.5 * agent::config.agentHeight, randpw() * -globals::worldsize);
+            newAgent->settranslation(randpw() * globals::worldwidth, 0.5 * agent::config.agentHeight, randpw() * -globals::worlddepth); //TODO SWAP
             newAgent->setyaw(randpw() * 360.0);
             id = WhichDomain(newAgent->x(), newAgent->z(), 0);
             newAgent->Domain(id);
@@ -3537,8 +3570,8 @@ void TSimulation::Kill( agent* c,
     	&& ((long)objectxsortedlist::gXSortedObjects.getCount(FOODTYPE) < fMaxFoodCount)
 		&& (fDomains[id].foodCount < fDomains[id].maxFoodCount)	// ??? Matt had commented this out; why?
 		&& ((fp = fDomains[id].whichFoodPatch( c->x(), c->z() )) && (fp->foodCount < fp->maxFoodCount))	// ??? Matt had nothing like this here; why?
-    	&& (globals::blockedEdges || (c->x() >= 0.0 && c->x() <=  globals::worldsize &&
-    	                              c->z() <= 0.0 && c->z() >= -globals::worldsize)) )
+    	&& (globals::blockedEdges || (c->x() >= 0.0 && c->x() <=  globals::worldwidth &&
+    	                              c->z() <= 0.0 && c->z() >= -globals::worlddepth)) )
     {
 		const FoodType *carcassFoodType = c->GetMetabolism()->carcassFoodType;
 		if( carcassFoodType )
@@ -3786,7 +3819,9 @@ void TSimulation::FoodEnergyIn( const Energy &e ) {
 			fprintf( stderr, "WARNING! FoodEnergyIn/Out too simplistic for tracking this simulation!\n" );
 		}
 	}
+	
 	fFoodEnergyIn += e[0];
+	
 }
 
 //-------------------------------------------------------------------------------------------
@@ -4035,6 +4070,12 @@ void TSimulation::processWorldFile( proplib::Document *docWorldFile )
     fGroundColor = doc.get( "GroundColor" );
     fGroundClearance = doc.get( "GroundClearance" );
     globals::worldsize = doc.get( "WorldSize" );
+    globals::worldwidth = doc.get( "WorldWidth" );
+    globals::worlddepth = doc.get( "WorldDepth" );
+    globals::camerax = doc.get( "CameraX" );
+    globals::cameray = doc.get( "CameraY" );
+    globals::cameraz = doc.get( "CameraZ" );
+    
 
 	// ---
 	// --- Barriers
@@ -4185,24 +4226,24 @@ void TSimulation::processWorldFile( proplib::Document *docWorldFile )
 				fDomains[id].sizeX = dom.get( "SizeX" );
 				fDomains[id].sizeZ = dom.get( "SizeZ" );
 
-				fDomains[id].absoluteSizeX = globals::worldsize * fDomains[id].sizeX;
-				fDomains[id].absoluteSizeZ = globals::worldsize * fDomains[id].sizeZ;
+				fDomains[id].absoluteSizeX = globals::worldwidth * fDomains[id].sizeX;
+				fDomains[id].absoluteSizeZ = globals::worlddepth * fDomains[id].sizeZ;
 
-				fDomains[id].startX = fDomains[id].centerX * globals::worldsize - (fDomains[id].absoluteSizeX / 2.0);
-				fDomains[id].startZ = - fDomains[id].centerZ * globals::worldsize - (fDomains[id].absoluteSizeZ / 2.0);
+				fDomains[id].startX = fDomains[id].centerX * globals::worldwidth - (fDomains[id].absoluteSizeX / 2.0);
+				fDomains[id].startZ = - fDomains[id].centerZ * globals::worlddepth - (fDomains[id].absoluteSizeZ / 2.0);
 
-				fDomains[id].endX = fDomains[id].centerX * globals::worldsize + (fDomains[id].absoluteSizeX / 2.0);
-				fDomains[id].endZ = - fDomains[id].centerZ * globals::worldsize + (fDomains[id].absoluteSizeZ / 2.0);
+				fDomains[id].endX = fDomains[id].centerX * globals::worldwidth + (fDomains[id].absoluteSizeX / 2.0);
+				fDomains[id].endZ = - fDomains[id].centerZ * globals::worlddepth + (fDomains[id].absoluteSizeZ / 2.0);
 
 				// clean up for floating point precision a little
 				if( fDomains[id].startX < 0.0006 )
 					fDomains[id].startX = 0.0;
 				if( fDomains[id].startZ > -0.0006 )
 					fDomains[id].startZ = 0.0;
-				if( fDomains[id].endX > globals::worldsize * 0.9994 )
-					fDomains[id].endX = globals::worldsize;
-				if( fDomains[id].endZ < -globals::worldsize * 0.9994 )
-					fDomains[id].endZ = -globals::worldsize;
+				if( fDomains[id].endX > globals::worldwidth * 0.9994 )
+					fDomains[id].endX = globals::worldwidth;
+				if( fDomains[id].endZ < -globals::worlddepth * 0.9994 )
+					fDomains[id].endZ = -globals::worlddepth;
 			}
 
 			{
@@ -5030,13 +5071,27 @@ void TSimulation::getStatusText( StatusText& statusText,
 		strcat( t, t2 );
 	}
 	statusText.push_back( strdup( t ) );
+	
+	//track poison
+	sprintf( t, "totPoisonEaten = %.1f", fTotalPoisonEaten[0] );
+	for( int i = 1; i < globals::numEnergyTypes; i++ )
+	{
+		sprintf( t2, ", %.1f", fTotalPoisonEaten[i] );
+		strcat( t, t2 );
+	}
+	statusText.push_back( strdup( t ) );
 
 	static Energy lastTotalEnergyEaten;
 	static Energy deltaEnergy;
+	static Energy lastTotalPoisonEaten;
+	static Energy deltaPoison;
+	
     if( !(fStep % statusFrequency) )
     {
 		deltaEnergy = fTotalEnergyEaten - lastTotalEnergyEaten;
 		lastTotalEnergyEaten = fTotalEnergyEaten;
+		deltaPoison = fTotalPoisonEaten - lastTotalPoisonEaten;
+		lastTotalPoisonEaten = fTotalPoisonEaten;		
 	}
 	sprintf( t, "EatRate = %.1f", deltaEnergy[0] / statusFrequency );
 	for( int i = 1; i < globals::numEnergyTypes; i++ )

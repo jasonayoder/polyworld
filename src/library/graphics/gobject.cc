@@ -342,13 +342,13 @@ void gobject::Dropped( void )
 	
 	if( fPosition[0] < 0.0 )
 		fPosition[0] = 0.0;
-	else if( fPosition[0] > globals::worldsize )
-		fPosition[0] = globals::worldsize;
+	else if( fPosition[0] > globals::worldwidth )
+		fPosition[0] = globals::worldwidth;
 
 	if( fPosition[2] > 0.0 )
 		fPosition[2] = 0.0;
-	else if( fPosition[2] < -globals::worldsize )
-		fPosition[2] = -globals::worldsize;
+	else if( fPosition[2] < -globals::worlddepth )
+		fPosition[2] = -globals::worlddepth;
 	
 }
 

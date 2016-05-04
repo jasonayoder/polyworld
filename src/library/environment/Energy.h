@@ -81,6 +81,8 @@ class Energy
 
 	void constrain( const Energy &minEnergy, const Energy &maxEnergy );
 	void constrain( const Energy &minEnergy, const Energy &maxEnergy, Energy &result_overflow );
+	
+	void addAtIndex( int index, float val); //helps for tracking food/poison
 
 	static Energy createDepletionThreshold( const Energy &threshold, const EnergyPolarity &polarity );
 

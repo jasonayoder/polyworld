@@ -31,6 +31,13 @@ class globals
 {
 public:
 	static float	worldsize;
+	static float	worldwidth;
+	static float	worlddepth;
+	static float    camerax;
+	static float    cameray;
+	static float    cameraz;
+	
+	
 	static bool		wraparound;
 	static bool		blockedEdges;
 	static bool     stickyEdges;

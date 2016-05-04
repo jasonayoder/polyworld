@@ -373,17 +373,17 @@ Barriers {
 
   default [
     {
-      X1    (  0.3333 if RatioBarrierPositions else  (0.3333 * WorldSize) )
-      Z1    ( -1.0    if RatioBarrierPositions else -WorldSize )
-      X2    (  0.3333 if RatioBarrierPositions else  (0.3333 * WorldSize) )
-      Z2    ( -0.1    if RatioBarrierPositions else -0.1*WorldSize )
+      X1    (  0.3333 if RatioBarrierPositions else  (0.3333 * WorldWidth) )
+      Z1    ( -1.0    if RatioBarrierPositions else -WorldDepth )
+      X2    (  0.3333 if RatioBarrierPositions else  (0.3333 * WorldWidth) )
+      Z2    ( -0.1    if RatioBarrierPositions else -0.1*WorldDepth )
     }
     ,
     {
-      X1    (  0.6667 if RatioBarrierPositions else  (0.6667 * WorldSize) )
-      Z1    ( -1.0    if RatioBarrierPositions else -WorldSize )
-      X2    (  0.6667 if RatioBarrierPositions else  (0.6667 * WorldSize) )
-      Z2    ( -0.1    if RatioBarrierPositions else -0.1*WorldSize )
+      X1    (  0.6667 if RatioBarrierPositions else  (0.6667 * WorldWidth) )
+      Z1    ( -1.0    if RatioBarrierPositions else -WorldDepth )
+      X2    (  0.6667 if RatioBarrierPositions else  (0.6667 * WorldWidth) )
+      Z2    ( -0.1    if RatioBarrierPositions else -0.1*WorldDepth )
     }
  ]
 
@@ -395,26 +395,26 @@ Barriers {
       X1 {
         type    Float
         min     0.0
-        max     ( 1.0 if RatioBarrierPositions else WorldSize )
+        max     ( 1.0 if RatioBarrierPositions else WorldWidth )
         cppsym  "$[ancestor]->getPosition().xa"
       }
       Z1 {
         type    Float
         max     0.0
-        min     ( -1.0 if RatioBarrierPositions else -WorldSize )
+        min     ( -1.0 if RatioBarrierPositions else -WorldDepth )
         cppsym  "$[ancestor]->getPosition().za"
       }
 
       X2 {
         type    Float
         min     0.0
-        max     ( 1.0 if RatioBarrierPositions else WorldSize )
+        max     ( 1.0 if RatioBarrierPositions else WorldWidth )
         cppsym  "$[ancestor]->getPosition().xb"
       }
       Z2 {
         type    Float
         max     0.0
-        min     ( -1.0 if RatioBarrierPositions else -WorldSize )
+        min     ( -1.0 if RatioBarrierPositions else -WorldDepth )
         cppsym  "$[ancestor]->getPosition().zb"
       }
     }
@@ -676,7 +676,7 @@ Domains {
               type    Float
               default 10.0
               min     0.0
-              max     WorldSize # no great choice here, but should never be larger than this
+              max     WorldWidth # no great choice here, but should never be larger than this # TODO SWAP
             }
 
             RemoveFood {
@@ -765,7 +765,7 @@ Domains {
               type    Float
               default 0.0
               min     0.0
-              max     WorldSize # no great choice here, but should never be larger than this
+              max     WorldWidth # no great choice here, but should never be larger than this #TODO SWAP
             }
 
             # Optional color override for this patch.
@@ -793,11 +793,47 @@ Domains {
 # SECTION Simulation parameters -- Secondary
 #-------------------------------------------------------------------
 
-WorldSize {
+WorldWidth {
   type    Float
   default 100.0
   exmin   0.0
 }
+
+#Should be set to the largest of WorldWidth and WorldDepth
+WorldSize {
+  type    Float
+  default 100.0
+  min   WorldWidth
+}
+
+WorldDepth {
+  type    Float
+  default 100.0
+  exmin   0.0
+}
+
+#The translation of the camera position along the width of the world
+CameraX {
+  type    Float
+  default 100.0
+  exmin   0.0
+}
+
+#The height of the camera (always pointing to center of world)
+CameraY {
+  type    Float
+  default 100.0
+  exmin   0.0
+}
+
+#The translation of the camera position along the depth of the world
+CameraZ {
+  type    Float
+  default 100.0
+  exmin   0.0
+}
+
+
 
 Edges {
   type    Enum

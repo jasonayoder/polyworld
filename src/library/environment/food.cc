@@ -148,8 +148,8 @@ void food::initfood( const FoodType *foodType, long step )
 void food::initfood( const FoodType *foodType, long step, const Energy &e )
 {
 	fEnergy = e;
-	float x = randpw() * globals::worldsize;
-	float z = randpw() * globals::worldsize;
+	float x = randpw() * globals::worldwidth;
+	float z = randpw() * globals::worlddepth;
 	initfood( foodType, step, e, x, z );
 }
 

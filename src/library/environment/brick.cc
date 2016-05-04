@@ -88,7 +88,7 @@ void brick::load(istream& in)
 //-------------------------------------------------------------------------------------------
 void brick::initBrick( Color color )
 {
-	initBrick( color, randpw() * globals::worldsize, randpw() * globals::worldsize );
+	initBrick( color, randpw() * globals::worldwidth, randpw() * globals::worlddepth );
 }
 
 

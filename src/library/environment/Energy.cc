@@ -203,6 +203,14 @@ void Energy::constrain( const Energy &minEnergy, const Energy &maxEnergy, Energy
 	}
 }
 
+//useful for adjusting individual components of energy for tracking food vs. poison jasonayoder
+void Energy::addAtIndex( int index, float val) 
+{
+	values[index] += val;
+}
+
+
+
 Energy Energy::createDepletionThreshold( const Energy &threshold, const EnergyPolarity &polarity )
 {
 	Energy result = threshold;
@@ -220,6 +228,10 @@ float Energy::operator[]( int index ) const
 {
 	return values[index];
 }
+
+
+
+
 
 Energy &Energy::operator+=( const Energy &other )
 {

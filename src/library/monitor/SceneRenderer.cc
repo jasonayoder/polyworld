@@ -24,7 +24,7 @@ SceneRenderer::SceneRenderer( gstage &stage,
 	camera.SetPerspective( cameraProps.fov,
 						   float(width) / float(height),
 						   0.01,
-						   1.5 * globals::worldsize);
+						   1.5 * globals::worlddepth); //TODO change?
 }
 
 //---------------------------------------------------------------------------
