@@ -946,6 +946,32 @@ EnableSpeedFeedback {
   default False
 }
 
+EnableBlueInput {
+  type    Bool
+  default True
+}
+
+EnableRedInput {
+  type    Bool
+  default True
+}
+
+EnableGreenInput {
+  type    Bool
+  default True
+}
+
+EnableRandomInput {
+  type    Bool
+  default True
+}
+
+EnableEnergyInput {
+  type    Bool
+  default True
+}
+
+
 EnableGive {
   type    Bool
   default False
@@ -2149,7 +2175,7 @@ Sheets {
     MinVisionNeuronsPerSheet {
       type    Int
       default 1
-      min     1
+      min     0  #1
       max     MaxVisionNeuronsPerSheet
     }
 

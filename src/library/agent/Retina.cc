@@ -37,9 +37,12 @@ Retina::~Retina()
 
 void Retina::sensor_grow( NervousSystem *cns )
 {
-	channels[0].init( this, cns, 0, "Red" );
-	channels[1].init( this, cns, 1, "Green" );
-	channels[2].init( this, cns, 2, "Blue" );
+    if (agent::config.enableRedInput)
+        	channels[0].init( this, cns, 0, "Red" );
+    if (agent::config.enableGreenInput)        	
+	        channels[1].init( this, cns, 1, "Green" );
+    if (agent::config.enableBlueInput)	
+	        channels[2].init( this, cns, 2, "Blue" );
 }
 
 void Retina::sensor_prebirth_signal( RandomNumberGenerator *rng )
@@ -54,7 +57,7 @@ void Retina::sensor_prebirth_signal( RandomNumberGenerator *rng )
 
 void Retina::sensor_update( bool bprint )
 {
-	IF_BPRINTED
+	IF_BPRINTED	//TODO will error if colors not enabled as inputs
 	(
 		printf( "numneurons red,green,blue=%d, %d, %d\n",
 				channels[0].numneurons, channels[1].numneurons, channels[2].numneurons );
@@ -64,10 +67,16 @@ void Retina::sensor_update( bool bprint )
 				channels[0].xintwidth, channels[1].xintwidth, channels[2].xintwidth );
 	)
 
-	for( int i = 0; i < 3; i++ )
-	{
-		channels[i].update( bprint );
-	}
+	//for( int i = 0; i < 3; i++ )
+	//{
+	if (agent::config.enableRedInput)
+	        channels[0].update( bprint );
+	if (agent::config.enableGreenInput)
+	        channels[1].update( bprint );
+	if (agent::config.enableBlueInput)
+	        channels[2].update( bprint );
+		//channels[i].update( bprint );
+	//}
 
 	IF_BPRINT
 	(
@@ -91,18 +100,32 @@ void Retina::sensor_update( bool bprint )
 
 void Retina::sensor_start_functional( AbstractFile *f )
 {
-	for( int i = 0; i < 3; i++ )
-	{
-		channels[i].start_functional( f );
-	}
+	//for( int i = 0; i < 3; i++ )
+	//{
+    //   channels[i].start_functional( f );
+	//}
+	if (agent::config.enableRedInput)
+	        channels[0].start_functional( f );
+	if (agent::config.enableGreenInput)
+	        channels[1].start_functional( f );
+	if (agent::config.enableBlueInput)
+	        channels[2].start_functional( f );
+	
 }
 
 void Retina::sensor_dump_anatomical( AbstractFile *f )
 {
-	for( int i = 0; i < 3; i++ )
-	{
-		channels[i].dump_anatomical( f );
-	}
+	//for( int i = 0; i < 3; i++ )
+	//{
+	//    if (agent::config.enableRedInput || i != 0)
+	//	channels[i].dump_anatomical( f );
+	//}
+	if (agent::config.enableRedInput)
+	        channels[0].dump_anatomical( f );
+	if (agent::config.enableGreenInput)
+	        channels[1].dump_anatomical( f );
+	if (agent::config.enableBlueInput)
+	        channels[2].dump_anatomical( f );
 }
 
 void Retina::updateBuffer( short x, short y,

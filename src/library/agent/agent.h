@@ -121,6 +121,12 @@ public:
 		bool	enableVisionPitch;
 		bool	enableVisionYaw;
 		
+		bool	enableRedInput;
+		bool	enableBlueInput;
+		bool	enableGreenInput;
+		bool	enableRandomInput;
+		bool	enableEnergyInput;
+		
 		//add new enable/disable
 		bool	enableEat;
 		bool	enableMate;

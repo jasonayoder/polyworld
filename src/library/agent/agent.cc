@@ -167,7 +167,7 @@ void agent::processWorldfile( proplib::Document &doc )
 	agent::config.enableVisionPitch = doc.get( "EnableVisionPitch" );
 	agent::config.enableVisionYaw = doc.get( "EnableVisionYaw" );
 	
-	//added new iption output neurons
+	//added new optional output neurons
 	agent::config.enableEat = doc.get( "EnableEat" );
 	agent::config.enableMate = doc.get( "EnableMate" );
 	agent::config.enableFight  = doc.get( "EnableFight" );
@@ -175,6 +175,13 @@ void agent::processWorldfile( proplib::Document &doc )
 	agent::config.enableYaw = doc.get( "EnableYaw" );
 	agent::config.enableLight = doc.get( "EnableLight" );
 	agent::config.enableFocus = doc.get( "EnableFocus" );
+	
+	//new optional input neurons
+	agent::config.enableRedInput = doc.get( "EnableRedInput" );
+	agent::config.enableBlueInput = doc.get( "EnableBlueInput" );
+	agent::config.enableGreenInput = doc.get( "EnableGreenInput" );
+	agent::config.enableRandomInput = doc.get( "EnableRandomInput" );
+	agent::config.enableEnergyInput = doc.get( "EnableEnergyInput" );
 	
 }
 
@@ -467,8 +474,11 @@ void agent::grow( long mateWait )
 	// --- Create Input Nerves
 	// ---
 #define INPUT_NERVE( NAME ) fCns->createNerve( Nerve::INPUT, NAME )
-	INPUT_NERVE( "Random" );
-	INPUT_NERVE( "Energy" );
+
+	if( agent::config.enableRandomInput )
+		INPUT_NERVE( "Random" );
+	if( agent::config.enableEnergyInput )
+		INPUT_NERVE( "Energy" );
 	if( agent::config.enableMateWaitFeedback )
 		INPUT_NERVE( "MateWaitFeedback" );
 	if( agent::config.enableSpeedFeedback )
@@ -478,9 +488,12 @@ void agent::grow( long mateWait )
 		INPUT_NERVE( "Carrying" );
 		INPUT_NERVE( "BeingCarried" );
 	}
-	INPUT_NERVE( "Red" );
-	INPUT_NERVE( "Green" );
-	INPUT_NERVE( "Blue" );
+	if( agent::config.enableRedInput )
+		INPUT_NERVE( "Red" );
+	if( agent::config.enableGreenInput )
+		INPUT_NERVE( "Green" );
+	if( agent::config.enableBlueInput )
+		INPUT_NERVE( "Blue" );
 #undef INPUT_NERVE
 
 	// ---
@@ -520,9 +533,14 @@ void agent::grow( long mateWait )
 	// ---
 	// --- Create Sensors
 	// ---
+	
 	fCns->addSensor( fRetina = new Retina(Brain::config.retinaWidth) );
-	fCns->addSensor( fEnergySensor = new EnergySensor(this) );
-	fCns->addSensor( fRandomSensor = new RandomSensor(fCns->getRNG()) );
+	
+        if( agent::config.enableEnergyInput )
+        	fCns->addSensor( fEnergySensor = new EnergySensor(this) );
+	if( agent::config.enableRandomInput )
+        	fCns->addSensor( fRandomSensor = new RandomSensor(fCns->getRNG()) );
+	
 	if( agent::config.enableMateWaitFeedback )
 		fCns->addSensor( fMateWaitSensor = new MateWaitSensor(this, mateWait) );
 	if( agent::config.enableSpeedFeedback )

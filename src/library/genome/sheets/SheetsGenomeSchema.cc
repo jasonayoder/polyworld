@@ -209,11 +209,11 @@ void SheetsGenomeSchema::define()
 		vector<InputSheetDef> defs =
 			{
 				// Name					MaxWidth						NeuronCount        Enabled
-				{ "Red",				1.0,							VisionNeuronCount, true },
-				{ "Green",				1.0,							VisionNeuronCount, true },
-				{ "Blue",				1.0,							VisionNeuronCount, true },
-				{ "Random",				InputOutputSheetDefaultWidth,	1,			       true },
-				{ "Energy",				InputOutputSheetDefaultWidth,	1,			       true },
+				{ "Red",				1.0,							VisionNeuronCount, agent::config.enableRedInput },
+				{ "Green",				1.0,							VisionNeuronCount, agent::config.enableGreenInput },
+				{ "Blue",				1.0,							VisionNeuronCount, agent::config.enableBlueInput },
+				{ "Random",				InputOutputSheetDefaultWidth,	1,			       agent::config.enableRandomInput },
+				{ "Energy",				InputOutputSheetDefaultWidth,	1,			       agent::config.enableEnergyInput },
 				{ "MateWaitFeedback",	InputOutputSheetDefaultWidth,	1,			       agent::config.enableMateWaitFeedback },
 				{ "SpeedFeedback",		InputOutputSheetDefaultWidth,	1,			       agent::config.enableSpeedFeedback },
 				{ "Carrying",			InputOutputSheetDefaultWidth,	1,			       agent::config.enableCarry },
@@ -765,7 +765,6 @@ void SheetsGenomeSchema::createSheets( SheetsModel *model, SheetsGenome *g, Gene
 	for( int i = 0; i < numSheets; i++ )
 	{
 		ContainerGene *sheetGene = GeneType::to_Container( container->getAll()[i] );
-
 		createSheet( model, g, sheetGene );
 	}
 }
