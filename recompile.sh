@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 module load python/2.7.8
 module load gsl/1.15
 module load qt/gnu/4.8.6
@@ -32,7 +30,6 @@ make
 
 
 module load opengl
-
 
 module unload python/2.7.8
 module unload gsl/1.15
