@@ -187,6 +187,11 @@ public:
     void lastrewards(float energyFitness, float ageFitness);
     void Die();
 
+    //track eat age mapping
+    std::map<long, float> getEatAgeMap();
+    float foodEatenWhileOld();
+    float foodEatenWhileYoung();
+    
 	void addListener( AgentListener *listener );
 	void removeListener( AgentListener *listener );
     
@@ -288,6 +293,9 @@ protected:
 	float fLastEatPosition[3];
 	LifeSpan fLifeSpan;
 	bool fDeathByPatch;
+	
+	//jasonayoder - track eat stats
+	std::map<long,float> eatAgeMap;
 
 	Energy fEnergy;
 	Energy fFoodEnergy;
@@ -359,6 +367,9 @@ protected:
 
 	AgentListeners listeners;
 };
+
+//jasonayoder
+inline std::map<long, float> agent::getEatAgeMap() { return eatAgeMap;  }
 
 inline void agent::addListener( AgentListener *listener ) { listeners.push_back(listener); }
 inline void agent::removeListener( AgentListener *listener ) { if( fAlive ) listeners.remove(listener); }

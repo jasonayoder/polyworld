@@ -3031,8 +3031,17 @@ void TSimulation::CreateAgents( void )
                 fLastCreated = fStep;
                 fDomains[id].lastcreate = fStep;
                 agent* newAgent = agent::getfreeagent(this, &fStage);
+                
+                //ADD PURELY RANDOM MODE
+                if (Brain::config.allRandomAgents ) {
+                        // otherwise, just generate a random, hopeful monster
+                        newAgent->Genes()->randomize();
+                        fNumberCreatedRandom++;
+			gaPrint( "%5ld: domain %d creation random (%4ld)\n", fStep, id, fNumberCreatedRandom );
+			
 
-                if ( fDomains[id].fittest && fDomains[id].fittest->isFull() )
+                } 
+                else if ( fDomains[id].fittest && fDomains[id].fittest->isFull() )
                 {
                     // the list exists and is full
                     if (fFitness1Frequency
@@ -3550,6 +3559,27 @@ void TSimulation::Kill( agent* c,
 	fLifeSpanStats.add( c->Age() );
 	fLifeSpanRecentStats.add( c->Age() );
 	fLifeFractionRecentStats.add( c->Age() / c->MaxAge() );
+	
+	// --- 
+	// --- Update the lifetime food eaten to measure learning
+	// ---
+	float youngFoodEaten = c->foodEatenWhileYoung();
+	float oldFoodEaten = c->foodEatenWhileOld();
+	
+	
+	fYoungFoodEatenStats.add( youngFoodEaten );
+	fOldFoodEatenStats.add( oldFoodEaten );
+	
+	fYoungFoodEatenRecentStats.add( youngFoodEaten );
+	fOldFoodEatenRecentStats.add( oldFoodEaten );
+	
+	//ratio > 1 means learning happens, < 1 means they do worse later in life
+	//This means we don't count it when an agent eats in only the first or second half of their life
+	if (youngFoodEaten > 0 && oldFoodEaten > 0 ) {
+		fOldToYoungRatioStats.add( c->foodEatenWhileYoung() / c->foodEatenWhileOld() );
+	}
+	
+	
 
 	// ---
 	// --- Update Fitness
@@ -5119,8 +5149,30 @@ void TSimulation::getStatusText( StatusText& statusText,
 	sprintf( t, "LifeSpan = %lu ± %lu [%lu, %lu]", nint( fLifeSpanStats.mean() ), nint( fLifeSpanStats.stddev() ), (unsigned long) fLifeSpanStats.min(), (unsigned long) fLifeSpanStats.max() );
 	statusText.push_back( strdup( t ) );
 
+	//fYoungFoodEatenStats
+	sprintf( t, "YoungFoodEaten = %lu ± %lu [%lu, %lu]", nint( fYoungFoodEatenStats.mean() ), nint( fYoungFoodEatenStats.stddev() ), (unsigned long) fYoungFoodEatenStats.min(), (unsigned long) fYoungFoodEatenStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	//fOldFoodEatenStats
+	sprintf( t, "OldFoodEaten = %lu ± %lu [%lu, %lu]", nint( fOldFoodEatenStats.mean() ), nint( fOldFoodEatenStats.stddev() ), (unsigned long) fOldFoodEatenStats.min(), (unsigned long) fOldFoodEatenStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	//fOldToYoungFoodEatenStats
+	sprintf( t, "OldToYoungFoodRatio = %.2f ± %.2f [%.2f, %.2f]", fOldToYoungRatioStats.mean(), fOldToYoungRatioStats.stddev(), fOldToYoungRatioStats.min(),  fOldToYoungRatioStats.max() );
+	statusText.push_back( strdup( t ) );
+
+
 	sprintf( t, "RecLifeSpan = %lu ± %lu [%lu, %lu]", nint( fLifeSpanRecentStats.mean() ), nint( fLifeSpanRecentStats.stddev() ), (unsigned long) fLifeSpanRecentStats.min(), (unsigned long) fLifeSpanRecentStats.max() );
 	statusText.push_back( strdup( t ) );
+	
+	//fYoungFoodEatenRecentStats; 
+	sprintf( t, "fYoungFoodEatenRecentStats = %lu ± %lu [%lu, %lu]", nint( fYoungFoodEatenRecentStats.mean() ), nint( fYoungFoodEatenRecentStats.stddev() ), (unsigned long) fYoungFoodEatenRecentStats.min(), (unsigned long) fYoungFoodEatenRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	//fYoungFoodEatenRecentStats
+	sprintf( t, "fOldFoodEatenRecentStats = %lu ± %lu [%lu, %lu]", nint( fOldFoodEatenRecentStats.mean() ), nint( fOldFoodEatenRecentStats.stddev() ), (unsigned long) fOldFoodEatenRecentStats.min(), (unsigned long) fOldFoodEatenRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
 
 	// ---
 	// --- addStat()

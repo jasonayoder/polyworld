@@ -97,6 +97,8 @@ public:
 		bool geneticNeuronType;
 		bool geneticNeuronPosition;
 		
+		bool allRandomAgents;
+		
 		/*
 		* <Gasnets variables
 		*/

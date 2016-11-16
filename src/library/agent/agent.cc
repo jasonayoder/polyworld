@@ -740,6 +740,13 @@ void agent::eat( food* f,
 			fLastEatPosition[1] = fPosition[1];
 			fLastEatPosition[2] = fPosition[2];
 		}
+		
+		//Store the amount of food at a given time in the map  [AGE] -> [FOOD]
+		//This can be used a later time for calculating lifetime learning
+		eatAgeMap[ Age() ] = return_actuallyEat.sum();
+		//Print out for debug purposes
+		//cout << "Agent["<< getTypeNumber() << "] ate " << return_actuallyEat.sum() << " @age: " << Age() << "\n";
+		
 	}
 }
 
@@ -841,6 +848,59 @@ float agent::ProjectedHeuristicFitness()
 		return( fHeuristicFitness );
 }
 
+
+//---------------------------------------------------------------------------
+// agent::foodEatenWhileYoung
+//---------------------------------------------------------------------------    
+float agent::foodEatenWhileYoung()
+{
+    //Iterator for age-eat map
+    typedef std::map<long, float>::iterator it_type;
+    std::map<long, float> m = getEatAgeMap();
+    //Could add other options here, for instance only consider agents that live to a certain lifetime
+    //Also could consider having timebins to compare % of food eaten
+    float firstHalf = 0.0; 
+    float secondHalf = 0.0;
+    float midLife = Age()/2.0;
+
+    for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+            long age =  iterator->first;
+            float food = iterator->second;
+            if (midLife > age ) {
+                    firstHalf += food;
+            }
+    }
+    
+    return firstHalf;
+}
+
+
+//---------------------------------------------------------------------------
+// agent::foodEatenWhileOld
+//---------------------------------------------------------------------------    
+float agent::foodEatenWhileOld()
+{
+    //Iterator for age-eat map
+    typedef std::map<long, float>::iterator it_type;
+    std::map<long, float> m = getEatAgeMap();
+    //Could add other options here, for instance only consider agents that live to a certain lifetime
+    //Also could consider having timebins to compare % of food eaten
+    float firstHalf = 0.0; 
+    float secondHalf = 0.0;
+    float midLife = Age()/2.0;
+
+    for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+            long age =  iterator->first;
+            float food = iterator->second;
+            if (midLife <= age ) {
+                    secondHalf += food;
+            }
+    }
+            
+    return secondHalf;
+}
+
+
 //---------------------------------------------------------------------------
 // agent::Die
 //---------------------------------------------------------------------------    
@@ -878,6 +938,9 @@ void agent::Die()
 	assert(agent::agentsliving >= 0);
 	
 	fSimulation->GetAgentPovRenderer()->remove( this );
+	
+	
+	
 }
 
 //---------------------------------------------------------------------------

@@ -102,6 +102,8 @@ void Brain::processWorldfile( proplib::Document &doc )
     Brain::config.geneticNeuronType = doc.get( "GeneticNeuronType" );
     Brain::config.geneticNeuronPosition = doc.get( "GeneticNeuronPosition" );
     
+    Brain::config.allRandomAgents = doc.get( "AllRandomAgents" );
+    
     
     // <Gasnets variables
     Brain::config.gasnetsEnabled = doc.get( "GasnetsEnabled" );

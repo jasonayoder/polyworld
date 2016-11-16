@@ -1287,6 +1287,9 @@ void Logs::LifeSpanLog::init( TSimulation *sim, Document *doc )
 			"BirthReason",
 			"DeathStep",
 			"DeathReason",
+			"EnergyEaten",
+			"YoungEnergyEaten",
+			"OldEnergyEaten",
 			NULL
 		};
 	const datalib::Type coltypes[] =
@@ -1295,7 +1298,10 @@ void Logs::LifeSpanLog::init( TSimulation *sim, Document *doc )
 			datalib::INT,
 			datalib::STRING,
 			datalib::INT,
-			datalib::STRING
+			datalib::STRING,
+			datalib::FLOAT,
+			datalib::FLOAT,
+			datalib::FLOAT
 		};
 
 	getWriter()->beginTable( "LifeSpans",
@@ -1310,12 +1316,40 @@ void Logs::LifeSpanLog::processEvent( const sim::AgentDeathEvent &death )
 {
 	agent *a = death.a;
 	LifeSpan *ls = a->GetLifeSpan();
+	
+    //process data for energy
+    
+    //Iterator for age-eat map
+    typedef std::map<long, float>::iterator it_type;
+    std::map<long, float> m = a->getEatAgeMap();
+    
+    //Could add other options here, for instance only consider agents that live to a certain lifetime
+    //Also could consider having timebins to compare % of food eaten
+    float firstHalf = 0.0; 
+    float secondHalf = 0.0;
+    float midLife = a->Age()/2.0;
+
+    for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+            long age =  iterator->first;
+            float food = iterator->second;
+            if (midLife > age ) {
+                    firstHalf += food;
+            } else {
+                    secondHalf += food;
+            }
+    }
+    
+//    debug totals 
+//    cout << "First half: " << firstHalf << "  second half:" << secondHalf << "\n";	
 
 	getWriter()->addRow( a->Number(),
 						 ls->birth.step,
 						 LifeSpan::BR_NAMES[ls->birth.reason],
 						 ls->death.step,
-						 LifeSpan::DR_NAMES[ls->death.reason] );
+						 LifeSpan::DR_NAMES[ls->death.reason],
+						 firstHalf + secondHalf,
+						 firstHalf,
+						 secondHalf );
 }
 
 

@@ -406,6 +406,11 @@ private:
 	int   fLinearFogEnd;
 
 	Stat fLifeSpanStats;
+	Stat fYoungFoodEatenStats;
+	Stat fOldFoodEatenStats;
+	Stat fOldToYoungRatioStats;
+	
+	
 	struct CurrentBrainStats
 	{
 		Stat neuronCount;
@@ -441,6 +446,11 @@ private:
 	} fCurrentBrainStats;
 	StatRecent fLifeSpanRecentStats;
 	StatRecent fLifeFractionRecentStats;
+	
+	StatRecent fYoungFoodEatenRecentStats;
+	StatRecent fOldFoodEatenRecentStats;
+	
+	
 	GeneStats fGeneStats;
 
 	bool fRandomBirthLocation;
