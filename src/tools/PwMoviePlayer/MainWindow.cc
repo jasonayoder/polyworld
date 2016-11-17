@@ -32,7 +32,7 @@ using namespace std;
 //---------------------------------------------------------------------------
 MainWindow::MainWindow( const char* windowTitle,
 						const char* windowSettingsNameParam,
-						const Qt::WindowFlags windowFlags,
+						const Qt::WFlags windowFlags, //ALIFE14 idk why
 						PwMovieReader* readerParam,
 						char** legend,
 						uint32_t startFram,

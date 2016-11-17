@@ -83,8 +83,40 @@ class Curve:
                                                         self._spec_using(),
                                                         self._spec_with(),
                                                         self.style.id)
+
+
         if self.title:
-            spec += " title '%s'" % psencode(self.title)
+            #start modifications for barrier plot specifics        
+            if "pval " in self.title:						#jasonayoder
+                spec += " title 'Significance'"		 		#jasonayoder
+            elif "Sbase" in self.title:						#jasonayoder
+                spec += " title 'SheetsBase'" 				#jasonayoder
+            elif "Gbase" in self.title:						#jasonayoder
+                spec += " title 'GroupsBase'" 				#jasonayoder
+            elif "Splasticity" in self.title:				#jasonayoder
+                spec += " title 'SheetsPlasticity'" 		#jasonayoder
+            elif "Gplasticity" in self.title:				#jasonayoder
+                spec += " title 'GroupsPlasticity'" 		#jasonayoder
+            elif "Sactivation" in self.title:				#jasonayoder
+                spec += " title 'SheetsActivation'" 		#jasonayoder
+            elif "Gactivation" in self.title:				#jasonayoder
+                spec += " title 'GroupsActivation'" 		#jasonayoder
+            elif "Groups" in self.title:					#jasonayoder
+                spec += " title 'Groups (All)'" 			#jasonayoder
+            elif "Sheets" in self.title:					#jasonayoder
+                spec += " title 'Sheets (All)'" 			#jasonayoder
+            elif "Gactivationplasticity" in self.title:						#jasonayoder
+                spec += " title 'GroupsActivationPlasticity'" 				#jasonayoder
+            elif "Sactivationplasticity" in self.title:						#jasonayoder
+                spec += " title 'SheetsActivationPlasticity'" 				#jasonayoder
+            elif "Plasticity" in self.title:				#jasonayoder
+                spec += " title 'Plasticity'" 				#jasonayoder
+            elif "Activation" in self.title:				#jasonayoder
+                spec += " title 'Activation'" 				#jasonayoder
+            elif "Base" in self.title:						#jasonayoder
+                spec += " title 'Base'" 					#jasonayoder
+            else:	#end modifications for barrier plot specifics #jasonayoder
+                spec += " title '%s'" % psencode(self.title)#jasonayoder original
         else:
             spec += ' notitle'
 
@@ -323,15 +355,15 @@ class Plot:
             spec += 'unset key\n'
 
         if self.xlabel:
-            spec += "set xlabel '%s' font 'Times,14'\n" % psencode(self.xlabel)
+            spec += "set xlabel '%s' font 'Times,20'\n" % psencode(self.xlabel) #jasonayoder 14 originally
         else:
             spec += 'unset xlabel\n'
         if self.y1label:
-            spec += "set ylabel '%s' font 'Times,14'\n" % psencode(self.y1label)
+            spec += "set ylabel '%s' font 'Times,20'\n" % psencode(self.y1label) #jasonayoder 14 originally
         else:
             spec += 'unset ylabel\n'
         if self.y2label:
-            spec += "set y2label \"%s\" font 'Times,14'\n" % psencode(self.y2label)
+            spec += "set y2label \"%s\" font 'Times,20'\n" % psencode(self.y2label) #jasonayoder 14 originally
         else:
             spec += 'unset y2label\n'
 
@@ -369,7 +401,8 @@ class Plot:
             spec += style.getSpec()
 
         if self.title:
-            spec += "set title '%s'\n" % psencode(self.title)
+            #spec += "set title '%s'\n" % psencode(self.title) #original
+            spec += "set title '%s' font 'Times,24'\n" % psencode(self.title) #jasonayoder
             spec += 'show title\n'
 
         spec += 'plot '

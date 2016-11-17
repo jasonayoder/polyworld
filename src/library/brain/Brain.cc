@@ -32,6 +32,11 @@ using namespace genome;
 	bool DebugBrainGrowPrint = true;
 #endif
 
+#if DebugNeuromodulation					//ALIFE14
+    bool DebugNeuromodulationPrint = true;	//ALIFE14
+#endif										//ALFIE14
+
+
 //===========================================================================
 // Brain
 //===========================================================================
@@ -96,7 +101,15 @@ void Brain::processWorldfile( proplib::Document &doc )
 
  	// Set up retina values
 	Brain::config.minWin = doc.get( "RetinaWidth" );
-
+	
+	//ALIFE14 START
+	Brain::config.neuromodulation = doc.get( "Neuromodulation" );							
+	Brain::config.staticModulatorySynapseWeight = doc.get( "StaticModulatorySynapseWeight" );
+	Brain::config.modulatePlasticity = doc.get( "ModulatePlasticity" );						
+	Brain::config.maxModulatorySynapseWeight = doc.get( "MaxModulatorySynapseWeight" );		
+	Brain::config.minModulatorySynapseWeight = doc.get( "MinModulatorySynapseWeight" );
+	//ALIFE14 END
+	
 	GroupsBrain::processWorldfile( doc );
 	SheetsBrain::processWorldfile( doc );
 }

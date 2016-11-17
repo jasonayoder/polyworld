@@ -29,6 +29,9 @@ struct FiringRateModel__Synapse
 	float lrate;
 	short fromneuron;
 	short toneuron;
+	short type; //ALIFE14
+	float modulatoryweight; //ALIFE14
+	
 };
 
 

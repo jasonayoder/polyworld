@@ -28,7 +28,7 @@ class MainWindow : public QWidget
 public:
 	MainWindow( const char* windowTitle,
 				const char* windowSettingsNameParam,
-				const Qt::WindowFlags windowFlags,
+				const Qt::WFlags windowFlags,
 				PwMovieReader* reader,
 				char** legend,
 				uint32_t startFram,

@@ -5,9 +5,9 @@
 
 #include <iostream>
 
-#include "SheetsGenome.h"
 #include "agent/agent.h"
 #include "brain/sheets/SheetsBrain.h"
+#include "genome/sheets/SheetsGenome.h"
 
 using namespace std;
 using namespace genome;
@@ -186,7 +186,6 @@ void SheetsGenomeSchema::define()
 
 	SCALAR( this, "LearningRate", SheetsBrain::config.minLearningRate, SheetsBrain::config.maxLearningRate );
 	
-
 	// ---
 	// --- Input Sheets
 	// ---
@@ -406,12 +405,18 @@ Neuron::Attributes::Type SheetsGenomeSchema::getNeuronType( SynapseType synapseT
 	case Sheet::From:
 		switch( synapseType )
 		{
+		case EM: //ALIFE14
 		case EE:
 		case EI:
 			return Neuron::Attributes::E;
+        case IM: //ALIFE14
 		case IE:
 		case II:
 			return Neuron::Attributes::I;
+        case ME: //ALIFE14
+        case MI: //ALIFE14
+        case MM: //ALIFE14
+            return Neuron::Attributes::M; //ALIFE14
 		default:
 			assert( false );
 			break;
@@ -420,12 +425,18 @@ Neuron::Attributes::Type SheetsGenomeSchema::getNeuronType( SynapseType synapseT
 	case Sheet::To:
 		switch( synapseType )
 		{
+		case ME: //
 		case EE:
 		case IE:
 			return Neuron::Attributes::E;
+        case MI: //ALIFE14
 		case EI:
 		case II:
 			return Neuron::Attributes::I;
+		case EM: //ALIFE14
+		case IM: //ALIFE14
+		case MM: //ALIFE14
+            return Neuron::Attributes::M; //ALIFE14
 		default:
 			assert( false );
 			break;
@@ -546,6 +557,15 @@ void SheetsGenomeSchema::defineReceptiveFields( ContainerGene *fromSheets,
 				defineReceptiveField( from, toId, Sheet::Target, EI );
 				defineReceptiveField( from, toId, Sheet::Target, IE );
 				defineReceptiveField( from, toId, Sheet::Target, II );
+				//ALIFE14 start
+				if (Brain::config.neuromodulation) {
+  				  defineReceptiveField( from, toId, Sheet::Target, ME );
+  				  defineReceptiveField( from, toId, Sheet::Target, MI );
+  				  defineReceptiveField( from, toId, Sheet::Target, EM );
+  				  defineReceptiveField( from, toId, Sheet::Target, IM );
+  				  defineReceptiveField( from, toId, Sheet::Target, MM );
+                }														
+                //ALIFE14 end
 			}
 
 			{
@@ -554,7 +574,17 @@ void SheetsGenomeSchema::defineReceptiveFields( ContainerGene *fromSheets,
 				defineReceptiveField( to, fromId, Sheet::Source, EI );
 				defineReceptiveField( to, fromId, Sheet::Source, IE );
 				defineReceptiveField( to, fromId, Sheet::Source, II );
+				//ALIFE14 start
+				if (Brain::config.neuromodulation) {
+    				defineReceptiveField( to, fromId, Sheet::Source, ME );
+	    			defineReceptiveField( to, fromId, Sheet::Source, MI );
+		    		defineReceptiveField( to, fromId, Sheet::Source, EM );
+			    	defineReceptiveField( to, fromId, Sheet::Source, IM );
+                    defineReceptiveField( to, fromId, Sheet::Source, MM );
+                }
+                //ALIFE14 end
 			}
+			
 		}
 	}
 }
@@ -673,6 +703,22 @@ void SheetsGenomeSchema::defineSynapseAttrs( ContainerGene *container )
 {
 	SCALAR( container, "Weight", 0.0f, Brain::config.initMaxWeight );
 	SCALAR( container, "LearningRate", 0.0f, 1.0f );
+
+	
+	//ALIFE14 start
+	//  sheets neuromodulation
+    //This line changes the way that genomes get recorded and changes things down the stretch
+    //However, it does not impact the results in any other fashion
+    if (Brain::config.neuromodulation) { 																			//jasonayoder
+      SCALAR( container, "ModulatoryWeight", 0.0f, Brain::config.maxModulatorySynapseWeight);    //initMaxWeight ); //jasonayoder
+    }																												//jasonayoder
+    
+    SCALAR( container, "Type", 0, 2);	//jasonayoder
+    //jasonayoder - Using this line is a sanity check that it does in fact do nothing (genome directory shows differences, but thats the only thing) 
+    //SCALAR( container, "XodulatoryWeight", 0.0f, 2.0 ); //jasonayoder
+    //jasonayoder diff -r run/ ~/PolyworldCVSTest/polyworld/run_100_NO_MOD_SHEETS/ -x genome*
+    //jasonayoder TODO type
+	
 }
 
 SheetsModel *SheetsGenomeSchema::createSheetsModel( SheetsGenome *genome )
@@ -752,10 +798,29 @@ void SheetsGenomeSchema::createSheet( SheetsModel *model, SheetsGenome *g, Conta
 				neuron->attrs.type = Neuron::Attributes::EI;
 				break;
 			case Sheet::Internal:
-				neuron->attrs.type = (neuron->sheetIndex.a % 2) == (neuron->sheetIndex.b % 2)
-					? Neuron::Attributes::E
-					: Neuron::Attributes::I;
-				break;
+			//ALIFE14 start
+			//TODO - add genetic type from other codebase for this, may be extremely useful
+			    if (!Brain::config.neuromodulation) {
+    				neuron->attrs.type = (neuron->sheetIndex.a % 2) == (neuron->sheetIndex.b % 2)
+    					? Neuron::Attributes::E
+	    				: Neuron::Attributes::I;
+                } else {
+                    switch ( (neuron->sheetIndex.a + neuron->sheetIndex.b) % 3)
+                    {
+                    case 0:
+                        neuron->attrs.type = Neuron::Attributes::E;
+                        break; //OMG jasonayoder 6-22-2014
+                    case 1:
+                        neuron->attrs.type = Neuron::Attributes::I;
+                        break; //OMG jasonayoder 6-22-2014
+                    case 2:
+                        neuron->attrs.type = Neuron::Attributes::M;
+                        break; //OMG jasonayoder 6-22-2014
+                    }											
+                }												
+                break;											
+            //ALIFE14 end
+            
 			default:
 				assert( false );
 			}
@@ -921,8 +986,26 @@ void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
 	function<bool (Neuron *, Sheet::ReceptiveFieldNeuronRole)> neuronPredicate =
 		[this, synapseType]( Neuron *neuron, Sheet::ReceptiveFieldNeuronRole role )
 		{
-			if( neuron->attrs.type == Neuron::Attributes::EI )
-				return true;
+		    //ALIFE14 start
+		    //jasonayoder special condition for modulation
+		    //jasonayoder GASNETS TODO
+		    if (!Brain::config.neuromodulation) {
+		      
+		      if( neuron->attrs.type == Neuron::Attributes::EI )
+			  	return true;
+			  	
+            } else {
+              
+              if (neuron->attrs.type == Neuron::Attributes::EI) {
+                //if neuromodulation is enabled return true for EI only for non-mod
+                if (getNeuronType( synapseType, role ) != Neuron::Attributes::M) {
+                    //insert print out here
+                    return true;
+                }
+              }
+              
+            }
+            //ALIFE14 end
 
 			return getNeuronType( synapseType, role ) == neuron->attrs.type;
 		};
@@ -937,11 +1020,33 @@ void SheetsGenomeSchema::createReceptiveField( SheetsModel *model,
 		WARN_ONCE( "IMPLEMENT INDEX-BASED WEIGHT" ); 
 		attrs = decodeSynapseAttrs( g, fieldGene );
 
+		//ALIFE14 start
+		if( getNeuronType(synapseType, Sheet::From) == Neuron::Attributes::E )
+		{
+		    //polyworld/genome/NeuronType.h jasonayoder
+			attrs.type = EXCITATORY;//Neuron::Attributes::E; //jasonayoder  TODO 6-19-2014   WAS 1
+		}
+
+
 		if( getNeuronType(synapseType, Sheet::From) == Neuron::Attributes::I )
 		{
 			attrs.weight *= -1;
 			attrs.lrate *= -1;
+			
+			//polyworld/genome/NeuronType.h jasonayoder
+			attrs.type = INHIBITORY;//Neuron::Attributes::I; //jasonayoder  TODO 6-19-2014   WAS 0
 		}
+		
+		if( getNeuronType(synapseType, Sheet::From) == Neuron::Attributes::M )
+        {
+            //polyworld/genome/NeuronType.h jasonayoder
+            attrs.type = MODULATORY;//Neuron::Attributes::M; //jasonayoder TODO 6-19-2014   WAS 2
+            
+            //jasonayoder: maybe shift this so that it can fall between 0.5-2, or somehow scaled TODO
+            attrs.modulatoryweight = ( 0.5 + (attrs.weight  / 2.0) ); 	//jasonayoder TODO consisten camelCase
+            
+        }
+        //ALIFE14 end
 
 		synapseCreated =
 			[attrs] ( Synapse *synapse )
@@ -972,8 +1077,15 @@ Synapse::Attributes SheetsGenomeSchema::decodeSynapseAttrs( SheetsGenome *g,
 	Synapse::Attributes attrs;
 
 	attrs.weight = g->get( container->gene("Weight") );
+	
 	attrs.lrate = g->get( "LearningRate" );
 	attrs.lrate *= (float)g->get( container->gene("LearningRate") );
+	
+	if (Brain::config.neuromodulation) {											//ALIFE14
+	  attrs.modulatoryweight = g->get( container->gene("ModulatoryWeight") ); 		//ALIFE14
+	}																				//ALIFE14
+	
+	attrs.type = g->get( container->gene("Type") ); //jasonayoder  SYNAPSETYPE?
 
 	return attrs;
 }

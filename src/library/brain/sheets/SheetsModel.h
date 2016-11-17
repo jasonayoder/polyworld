@@ -98,6 +98,8 @@ namespace sheets
 		{
 			float weight;
 			float lrate;
+			int type; //ALIFE14
+			float modulatoryweight; //ALIFE14
 		} attrs;
 	};
 
@@ -125,7 +127,7 @@ namespace sheets
 		SynapseMap synapsesIn;
 		struct Attributes
 		{
-			enum Type { E, I, EI } type;
+			enum Type { E, I, EI, M } type;  //ALIFE14 TODO add more if needed
 			union
 			{
 				FiringRateModel__NeuronAttrs firingRate;

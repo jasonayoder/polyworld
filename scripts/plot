@@ -1015,6 +1015,10 @@ class AdhocMode( Mode ):
 								   tablenames = [mode_opts['tablename']],
 								   required = datalib.REQUIRED,
 								   keycolname = mode_opts['xcolname'] )[mode_opts['tablename']]
+            #ALIFE14
+            if GlobalOptions.epoch:
+                table = algorithms.make_epochs( table, mode_opts['xcolname'], mode_opts['ycolname'], GlobalOptions.epoch )
+            
 
 			runDatas.append( RunData(rundir,
 									 valuenames[0],

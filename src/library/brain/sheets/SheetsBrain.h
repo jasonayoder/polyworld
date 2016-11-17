@@ -2,6 +2,7 @@
 
 #include "SheetsModel.h"
 #include "brain/Brain.h"
+#include "genome/NeuronType.h"
 
 namespace genome { class SheetsGenome; }
 
@@ -35,9 +36,23 @@ class SheetsBrain : public Brain
 	int getNumInternalSheets();
 	int getNumInternalNeurons();
 	int getNumSynapses( sheets::Sheet::Type from, sheets::Sheet::Type to );
+	
+	int numNeuronsOfType(genome::NeuronType type);				//ALIFE14
+	long numSynapsesOfType(genome::NeuronType type);			//ALIFE14
+	int numInternalNeuronsOfType(genome::NeuronType type);		//ALIFE14
+	long numInternalSynapsesOfType(genome::NeuronType type);	//ALIFE14
+	
 
  private:
     void grow( genome::SheetsGenome *genome, sheets::SheetsModel *model );
+
+	int _numModulatoryNeuronsInternal = 0;	//ALIFE14
+    int _numInhibitoryNeuronsInternal = 0;	//ALIFE14
+    int _numExcitatoryNeuronsInternal = 0;	//ALIFE14
+    
+    long _numModulatorySynapsesInternal = 0;	//ALIFE14
+    long _numInhibitorySynapsesInternal = 0;	//ALIFE14
+    long _numExcitatorySynapsesInternal = 0;	//ALIFE14
 
 	int _numInternalSheets;
 	int _numInternalNeurons;

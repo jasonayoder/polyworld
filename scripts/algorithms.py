@@ -283,10 +283,10 @@ def avr_table_from_tables( avr_table_name, tables, xcolname, ycolname ):
 
 ####################################################################################
 ###
-### FUNCTION ttest()
+### FUNCTION old_ttest() deprecated
 ###
 ####################################################################################
-def ttest( data1, data2 ):
+def old_ttest( data1, data2 ):
 	assert( len(data1) == len(data2) )
 	n = len(data1)
 	if n < 2:
@@ -303,6 +303,50 @@ def ttest( data1, data2 ):
 	_pval = pval( _tval, n )
 
 	return mean, dev, _tval, _pval
+
+
+####################################################################################
+###
+### FUNCTION ttest() #jasonayoder
+###
+####################################################################################
+def ttest( data1, data2, mode="ind_neq" ):
+	assert( len(data1) == len(data2) )
+	n = len(data1)
+	if n < 2:
+		return 0.0, 0.0, 0.0, 0.0
+
+	_tval = None
+	_pval = None
+	
+	if mode == "rel":
+		#calculate using stats.ttest_rel
+		_tval, _pval = stats.ttest_rel(data1, data2)
+	elif mode == "ind_eq":
+		#calculate using stats.ttest_ind with equal variance
+		_tval, _pval = stats.ttest_ind(data1, data2, equal_var=True)
+	elif mode == "ind_neq":
+		#calculate using stats.ttest_ind with equal variance
+		_tval, _pval = stats.ttest_ind(data1, data2, equal_var=False)
+	else:
+		print "You must specify rel, ind, or ind_neq as mode!"
+		assert( False )
+	
+	#ttest_rel() sometimes returns negative value, so take absolute value  
+	_tval = abs(_tval)
+
+	#plotting 1 - pval1
+	_pval = 1 - _pval
+	
+	mean = diff_mean( iter(data1),
+			  iter(data2) )
+
+	dev = diff_stddev( mean,
+			   iter(data1),
+			   iter(data2) )
+
+	return mean, dev, _tval, _pval
+
 
 ####################################################################################
 ###
@@ -330,7 +374,7 @@ def ttest_table( ttest_table_name,
 	    data1 = [ table[x][ycolname] for table in tables1 ]
 	    data2 = [ table[x][ycolname] for table in tables2 ]
 
-	    diffMean, stdDev, tval, pval = ttest( data1, data2 )
+	    diffMean, stdDev, tval, pval = ttest( data1, data2, "ind_neq" ) #jasonayoder
 
 	    row = result.createRow()
 

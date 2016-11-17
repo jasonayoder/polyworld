@@ -10,7 +10,8 @@ namespace genome
 	enum NeuronType
 	{
 		INHIBITORY,
-		EXCITATORY
+		EXCITATORY,
+		MODULATORY //ALIFE14
 	};
 
 }

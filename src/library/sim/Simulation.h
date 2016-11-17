@@ -404,6 +404,28 @@ private:
 	{
 		Stat neuronCount;
 		Stat synapseCount;
+		
+		//ALIFE14 start
+        Stat synapseCountInternal;
+
+        Stat neuronCountInternal;
+        Stat modulatoryNeuronCountInternal;
+        Stat inhibitoryNeuronCountInternal;
+        Stat excitatoryNeuronCountInternal;
+
+        Stat modulatorySynapseCountInternal;
+        Stat inhibitorySynapseCountInternal;
+        Stat excitatorySynapseCountInternal;
+
+        Stat modulatoryNeuronPercentageInternal;
+        Stat excitatoryNeuronPercentageInternal;
+        Stat inhibitoryNeuronPercentageInternal;
+        Stat modulatorySynapsePercentageInternal;
+        Stat excitatorySynapsePercentageInternal;
+        Stat inhibitorySynapsePercentageInternal;
+		//ALIFE14 end
+		
+		
 		struct Groups
 		{
 			Stat groupCount;

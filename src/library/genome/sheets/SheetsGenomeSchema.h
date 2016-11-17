@@ -61,7 +61,7 @@ namespace genome
 
 		enum SynapseType
 		{
-			EE = 0, EI, IE, II, __NumSynapseTypes
+			EE = 0, EI, IE, II, ME, MI, EM, IM, MM, __NumSynapseTypes //ALIFE
 		};
 		static sheets::Neuron::Attributes::Type getNeuronType( SynapseType synapseType,
 															   sheets::Sheet::ReceptiveFieldNeuronRole role );

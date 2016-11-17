@@ -1337,6 +1337,52 @@ LinearFogEnd {
   default 33            # only applies to linear fog
 }
 
+#-------------------------------------------------------------------
+# SECTION ALIFE14 Parameters
+#-------------------------------------------------------------------
+
+MinModulatoryNeuronsPerGroup {
+  type    Int                 
+  default 0                            
+  min     0                            
+}                                      
+
+MaxModulatoryNeuronsPerGroup {         
+  type    Int                          
+  default 16                           #m-neuron WORKING SET TO 16 YOU GET M-NEURONS WITHIN 100 TIME STEPS
+  min     MinModulatoryNeuronsPerGroup 
+}                                      
+
+Neuromodulation {                      #False disables neuromodulation
+  type    Bool                         
+  default False                        
+}                                      
+
+StaticModulatorySynapseWeight {        #False enables synaptic weights to change
+  type    Bool                         
+  default False                        
+}                                      
+
+ModulatePlasticity {                   #False modulates activation
+  type    Bool                         
+  default False                        
+}                                      
+
+MinModulatorySynapseWeight {           
+  type    Float                        
+  default 0.5                          
+  min     0.5                          
+}                                      
+
+MaxModulatorySynapseWeight {           
+  type    Float                        
+  default 2.0                          
+  min     MinModulatorySynapseWeight   
+}                                      
+
+
+
+
 
 #-------------------------------------------------------------------
 # SECTION Simulation parameters -- Gene Expression (in legacy gene order)

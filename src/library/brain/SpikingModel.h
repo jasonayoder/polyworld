@@ -48,6 +48,8 @@ struct SpikingModel__Synapse
 	short fromneuron;
 	short toneuron;
 	float delta;  //!from iz intead of effecting weights directly
+	short type; //ALIFE14
+	float modulatoryweight; //ALIFE14
 };
 
 // forward decls

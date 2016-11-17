@@ -11,6 +11,13 @@
 #include "proplib/proplib.h"
 #include "utils/objectlist.h"
 
+//ALIFE14 start
+#define NeuromodulationEnabled false
+#if DebugNeuromodulation
+        extern bool DebugNeuromodulationPrint;
+#endif
+//ALIFE14 end
+
 
 #define DebugBrainGrow false
 #if DebugBrainGrow
@@ -94,6 +101,14 @@ public:
 		short retinaHeight;
 		float maxsynapse2energy; // (amount if all synapses usable)
 		float maxneuron2energy;
+		//ALIFE14 start
+		bool neuromodulation;
+		bool staticModulatorySynapseWeight;
+		bool modulatePlasticity;
+		float maxModulatorySynapseWeight;
+		float minModulatorySynapseWeight;
+		//ALIFE14 end
+
 	} config;
 
 	static void processWorldfile( proplib::Document &doc );
@@ -110,6 +125,8 @@ public:
     float getEnergyUse();
     short getNumNeurons();
 	long  getNumSynapses();
+	short getNumModulatoryNeurons(); //ALIFE14
+	long  getNumModulatorySynapses(); //ALIFE14
         
 	void dumpAnatomical( AbstractFile *file, long index, float fitness );
 	

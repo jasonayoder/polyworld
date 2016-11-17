@@ -1,12 +1,14 @@
-#include "SheetsBrain.h"
+#include "brain/sheets/SheetsBrain.h"
 
 #include <assert.h>
 
 #include "brain/FiringRateModel.h"
-#include "brain/NervousSystem.h"
-#include "brain/SpikingModel.h"
-#include "genome/sheets/SheetsGenome.h"
 #include "utils/misc.h"
+#include "brain/NervousSystem.h"
+#include "genome/sheets/SheetsGenome.h"
+#include "brain/SpikingModel.h"
+#include "genome/NeuronType.h"		//ALIFE14
+#include "brain/sheets/SheetsModel.h"	//ALIFE14
 
 using namespace genome;
 using namespace sheets;
@@ -46,6 +48,79 @@ void SheetsBrain::processWorldfile( proplib::Document &doc )
     SheetsBrain::config.minInternalSheetNeuronCount = sheets.get( "MinInternalSheetNeuronCount" );
     SheetsBrain::config.maxInternalSheetNeuronCount = sheets.get( "MaxInternalSheetNeuronCount" );
 }
+
+
+//ALIFE14 start
+//---------------------------------------------------------------------------
+// SheetsBrain::numNeuronsOfType
+//---------------------------------------------------------------------------
+/*int SheetsBrain::numNeuronsOfType(genome::NeuronType type) 
+{
+    assert(false); //dont use
+    if (type == MODULATORY && !Brain::config.neuromodulation) {
+//        return 0;
+    }
+
+    if (type == MODULATORY ) {
+        return _numModulatoryNeurons;
+    } else if(type == INHIBITORY ) {
+        return _numInhibitoryNeurons;
+    } else if (type == EXCITATORY ) {
+        return _numExcitatoryNeurons;
+    } else {
+        assert(false);
+    }
+    return 0;
+}
+*/
+//---------------------------------------------------------------------------
+// SheetsBrain::numInternalNeuronsOfType
+//---------------------------------------------------------------------------
+int SheetsBrain::numInternalNeuronsOfType(genome::NeuronType type) 
+{
+    if (type == MODULATORY && !Brain::config.neuromodulation) {
+//        return 0;
+    }
+
+    if (type == MODULATORY ) {
+        return _numModulatoryNeuronsInternal;
+    } else if(type == INHIBITORY ) {
+        return _numInhibitoryNeuronsInternal;
+    } else if (type == EXCITATORY ) {
+        return _numExcitatoryNeuronsInternal;
+    } else {
+        assert(false);
+    }
+    return 0;
+}
+
+
+
+//---------------------------------------------------------------------------
+// SheetsBrain::numInternalSynapsesOfType
+//---------------------------------------------------------------------------
+long SheetsBrain::numInternalSynapsesOfType(genome::NeuronType type) 
+{
+    if (type == MODULATORY && !Brain::config.neuromodulation) {
+//        assert(false);
+//        return 0;
+    }
+
+    if (type == MODULATORY ) {
+        return _numModulatorySynapsesInternal;
+    } else if(type == INHIBITORY ) {
+        return _numInhibitorySynapsesInternal;
+    } else if (type == EXCITATORY ) {
+        return _numExcitatorySynapsesInternal;
+    } else {
+        assert(false);
+    }
+
+    return 0;
+}
+//ALIFE14 end
+
+
 
 //---------------------------------------------------------------------------
 // SheetsBrain::init
@@ -114,6 +189,19 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 				_dims.numOutputNeurons++;
 				break;
 			case Sheet::Internal:
+			    if (neuron->attrs.type == Neuron::Attributes::M) {				//ALIFE14
+			        _numModulatoryNeuronsInternal += 1;							//ALIFE14
+			    } else if (neuron->attrs.type == Neuron::Attributes::I ) {		//ALIFE14
+			        _numInhibitoryNeuronsInternal += 1;							//ALIFE14
+                } else if (neuron->attrs.type == Neuron::Attributes::E ) {		//ALIFE14
+                    _numExcitatoryNeuronsInternal += 1;							//ALIFE14
+                } else if (neuron->attrs.type == Neuron::Attributes::EI) {		//ALIFE14
+                    assert(false);
+                    _numExcitatoryNeuronsInternal += 1;                         //ALIFE14
+                    _numInhibitoryNeuronsInternal += 1;                         //ALIFE14
+                } else {                                    					//ALIFE14
+                    assert(false);                          					//ALIFE14
+                }			    												//ALIFE14
 				// no-op
 				break;
 			default:
@@ -181,7 +269,7 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 		itfor( NeuronVector, model->getNeurons(), it )
 		{
 			Neuron *neuron = *it;
-
+			
 			_neuralnet->set_neuron( neuron->id,
 									&(neuron->attrs.neuronModel),
 									synapseIndex );
@@ -189,12 +277,28 @@ void SheetsBrain::grow( SheetsGenome *genome, SheetsModel *model )
 			itfor( SynapseMap, neuron->synapsesIn, it_synapse )
 			{
 				Synapse *synapse = it_synapse->second;
-
+				
+				if (synapse->from->sheet->getType() != Sheet::Output && synapse->to->sheet->getType() != Sheet::Input ) {
+				//(ONLY INTERNAL EXPLICITLY SYNAPSES)
+				//if (synapse->from->sheet->getType() == Sheet::Internal && synapse->to->sheet->getType() == Sheet::Internal ) {
+    				if (synapse->attrs.type == MODULATORY ) {				//ALIFE14 TODO ENUM
+                        _numModulatorySynapsesInternal += 1;				//ALIFE14
+                    } else if (synapse->attrs.type == INHIBITORY) {			//ALIFE14 TODO ENUM
+				        _numInhibitorySynapsesInternal += 1;				//ALIFE14
+                    } else if (synapse->attrs.type == EXCITATORY) {			//ALIFE14 TODO ENUM
+				        _numExcitatorySynapsesInternal += 1;				//ALIFE14
+                    } else {										//ALIFE14
+                        assert(false);								//ALIFE14
+                    }												//ALIFE14
+                }
+                
 				_neuralnet->set_synapse( synapseIndex++,
 										 synapse->from->id,
 										 synapse->to->id,
 										 synapse->attrs.weight,
-										 synapse->attrs.lrate );
+										 synapse->attrs.lrate,				//ALIFE14 sheets attrs
+										 synapse->attrs.type,				//ALIFE14 sheets attrs
+										 synapse->attrs.modulatoryweight ); //ALIFE14 sheets attrs
 
 				_numSynapses[ synapse->from->sheet->getType() ][ synapse->to->sheet->getType() ] += 1;
 			}

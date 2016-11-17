@@ -14,4 +14,4 @@ Polyworld.app
 *.patch
 *.eps
 .gdb_history
-
+*~

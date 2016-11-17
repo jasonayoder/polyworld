@@ -1,10 +1,11 @@
 #include "FiringRateModel.h"
 
+#include "sim/debug.h"
 #include "genome/Genome.h"
 #include "genome/GenomeSchema.h"
-#include "sim/debug.h"
 #include "utils/misc.h"
 
+#include "Brain.h" // temporary
 
 using namespace std;
 
@@ -79,11 +80,44 @@ void FiringRateModel::update( bool bprint )
 	for( i = dims->getFirstOutputNeuron(); i < dims->getFirstInternalNeuron(); i++ )
 	{
         newneuronactivation[i] = neuron[i].bias;
+		num_m_synapses[i] = 0;		//ALIFE14 m-neuron
+		modulatorysignal[i] = 0;	//ALIFE14 modulation
+		modulation[i] = 0.0;		//ALIFE14 test
+
         for( k = neuron[i].startsynapses; k < neuron[i].endsynapses; k++ )
         {
-            newneuronactivation[i] += synapse[k].efficacy *
-               neuronactivation[synapse[k].fromneuron];
-		}              
+        //ALIFE14 start
+        
+            //normal operation done if neuromodulation is not enabled or its not a MODULATORY synapse
+            if (!Brain::config.neuromodulation || synapse[k].type != MODULATORY ) {
+                newneuronactivation[i] += synapse[k].efficacy *
+                    neuronactivation[synapse[k].fromneuron];
+                        
+            } else { 
+            
+                    if (Brain::config.staticModulatorySynapseWeight ){
+                        modulation[i] += synapse[k].modulatoryweight *
+                            neuronactivation[synapse[k].fromneuron];
+                    } else {
+                        modulation[i] += synapse[k].efficacy *
+                            neuronactivation[synapse[k].fromneuron];
+                    }
+                    num_m_synapses[i]++;
+                    
+            }
+        //ALIFE14 end
+		}
+		
+
+		if (num_m_synapses[i] > 0) {													//ALIFE14 modulation pre-squashing modulation
+			modulation[i] /= num_m_synapses[i];											//ALIFE14 modulation
+			//modulating activity ONLY													//ALIFE14 modulation
+			if (Brain::config.neuromodulation && !Brain::config.modulatePlasticity ) {	//ALIFE14 modulation
+				newneuronactivation[i] *= modulation[i];								//ALIFE14 modulation
+			}
+		}
+		
+
 	#if GaussianOutputNeurons
         newneuronactivation[i] = gaussian( newneuronactivation[i], GaussianActivationMean, GaussianActivationVariance );
 	#else
@@ -101,14 +135,57 @@ void FiringRateModel::update( bool bprint )
 
 	long numneurons = dims->numNeurons;
 	float logisticSlope = Brain::config.logisticSlope;
+
+	//ALIFE14 - purely for debug purposes
+    float highmod=0;	//ALIFE14
+    float midmod=0;		//ALIFE14
+    float lowmod=0;		//ALIFE14
+    float maxmod = -1;	//ALIFE14
+    float minmod = 2;	//ALIFE14
+
+#if DebugNeuromodulation
+    if (DebugNeuromodulationPrint) {
+        cout << "\nNumber of Neurons: " << (numneurons - dims->getFirstInternalNeuron()  ) << "\n"; //ALIFE14
+    }
+#endif
+	
     for( i = dims->getFirstInternalNeuron(); i < numneurons; i++ )
     {
+		float modulation = 0.0;										//ALIFE14 modulation
+		int num_m_synapses = 0;										//ALIFE14 modulation
 		float newactivation = neuron[i].bias;
-        for( k = neuron[i].startsynapses; k < neuron[i].endsynapses; k++ )
-        {
-            newactivation += synapse[k].efficacy *
-               neuronactivation[synapse[k].fromneuron];
+       	for( k = neuron[i].startsynapses; k < neuron[i].endsynapses; k++ )
+		{
+			if (synapse[k].type == MODULATORY) {					//ALIFE14 modulation
+				if (Brain::config.staticModulatorySynapseWeight ){	//ALIFE14 modulation
+					modulation += synapse[k].modulatoryweight *		//ALIFE14 modulation
+						neuronactivation[synapse[k].fromneuron];	//ALIFE14 modulation
+				} else {											//ALIFE14 modulation
+					modulation += synapse[k].efficacy *				//ALIFE14 modulation
+						neuronactivation[synapse[k].fromneuron];	//ALIFE14 modulation
+				}													//ALIFE14 modulation
+				num_m_synapses++;									//ALIFE14 modulation
+			}														//ALIFE14 modulation
+			else {													//ALIFE14 modulation
+	            newactivation += synapse[k].efficacy *
+    	           neuronactivation[synapse[k].fromneuron];
+			}														//ALIFE14 modulation
 		}
+		
+		if (num_m_synapses > 0) {	//ALIFE14 pre-squashing modulation
+#if DebugNeuromodulation
+            if (DebugNeuromodulationPrint) {		
+	    	    cout << num_m_synapses << " ";
+            }
+#endif
+			modulation /= num_m_synapses;												//ALIFE14 modulation
+			//if neural activity modulation ONLY										//ALIFE14
+			if (Brain::config.neuromodulation && !Brain::config.modulatePlasticity ) {  //ALIFE14 TODO
+				newactivation *= modulation;    										//ALIFE14 modulation
+			}
+
+		} 
+		
         //newneuronactivation[i] = logistic(newneuronactivation[i], Brain::config.logisticSlope);
 
 		if( Brain::config.neuronModel == Brain::Configuration::TAU )
@@ -120,9 +197,45 @@ void FiringRateModel::update( bool bprint )
 		{
 			newactivation = logistic( newactivation, logisticSlope );
 		}
-
         newneuronactivation[i] = newactivation;
+		modulatorysignal[i] = modulation; //ALIFE14 modulate plasticity
+		
+#if DebugNeuromodulation
+		if (DebugNeuromodulationPrint) {
+		    
+		    if (modulation > maxmod) {
+		        maxmod = modulation;
+		    }
+		    if (modulation < minmod) {
+		        minmod = modulation;
+		    }
+		    
+		    if (modulation > 1.0) {
+		        highmod += 1;//modulation[i];
+            }
+            if (modulation > 0.1 && modulation <= 1.0 ) {
+		        midmod += 1; //modulation[i];
+		    } 
+		    if ( modulation <= 0.1 ){
+		        lowmod += 1;
+		    }
+		}
+#endif						
+
     }
+
+
+#if DebugNeuromodulation
+    if (DebugNeuromodulationPrint && midmod != -5) {
+        cout << "\nhighmod: " << highmod << ", ";
+        cout << "midmod: " << midmod << ", ";        
+        cout << "lowmod: " << lowmod << ", ";
+        cout << "maxmod: " << maxmod << ", ";
+        cout << "minmod: " << minmod << "\n";
+    }
+#endif
+
+
 
     debugcheck( "after updating neurons" );
 
@@ -135,17 +248,53 @@ void FiringRateModel::update( bool bprint )
 
 //	printf( "yaw activation = %g\n", newneuronactivation[yawneuron] );
 
+
+    
     float learningrate;
+	int type;
 	long numsynapses = dims->numSynapses;
     for (k = 0; k < numsynapses; k++)
     {
 		FiringRateModel__Synapse &syn = synapse[k];
 
 		learningrate = syn.lrate;
+		type = syn.type;  //ALIFE14 m-neuron
+		
+		//ALIFE14 m-neuron - definitely add something here #TODO FIX ME
+		
+#if DebugNeuromodulation
+		if (DebugNeuromodulationPrint) {
+		    if (modulatorysignal[syn.fromneuron] > highmod) {
+		        highmod = modulatorysignal[syn.fromneuron];
+            } else if (modulatorysignal[syn.fromneuron] > 0 && modulatorysignal[syn.fromneuron] < lowmod) {
+		        lowmod = modulatorysignal[syn.fromneuron];
+		    } else {
+		        midmod = modulatorysignal[syn.fromneuron];
+		    }
+//		    cout << "syn.efficacy: " << syn.efficacy << ", ";
+//		    cout << "modulatorysignal[syn.fromneuron]: " << modulatorysignal[syn.fromneuron] << ", ";
+		}
+#endif
+	
+		float efficacy = 0.0;															//ALIFE14
+		if (Brain::config.modulatePlasticity) {											//ALIFE14
+			if (modulatorysignal[syn.fromneuron] == 0) {								//ALIFE14
+				modulatorysignal[syn.fromneuron] = 1;     ///varies between 0 and 2.0	//ALIFE14
+			}																			//ALIFE14
+			efficacy = syn.efficacy +  modulatorysignal[syn.fromneuron] * learningrate	//ALIFE14 modulatorySignal pre-synaptic neuron IMPORTANT
+				* (newneuronactivation[syn.toneuron]-0.5f)								//ALIFE14
+				* (   neuronactivation[syn.fromneuron]-0.5f);							//ALIFE14
+		} else {																		//ALIFE14
+			efficacy = syn.efficacy + learningrate										//ALIFE14
+				* (newneuronactivation[syn.toneuron]-0.5f)								//ALIFE14
+				* (   neuronactivation[syn.fromneuron]-0.5f);							//ALIFE14
+		}																				//ALIFE14
 
-		float efficacy = syn.efficacy + learningrate
-			* (newneuronactivation[syn.toneuron]-0.5f)
-			* (   neuronactivation[syn.fromneuron]-0.5f);
+#if DebugNeuromodulation
+		if (DebugNeuromodulationPrint) {
+//		    cout << "efficacy: " << efficacy << "\n";
+		}
+#endif		
 
         if (fabs(efficacy) > (0.5f * Brain::config.maxWeight))
         {
@@ -163,6 +312,7 @@ void FiringRateModel::update( bool bprint )
             // not strictly correct for this to be in an else clause,
             // but if lrate is reasonable, efficacy should never change
             // sign with a new magnitude greater than 0.5 * Brain::config.maxWeight
+		    // ALIFE14 m-neuron, don't think anything is necessary to change here, double check TODO
             if (learningrate >= 0.0f)  // excitatory
                 efficacy = MAX(0.0f, efficacy);
             if (learningrate < 0.0f)  // inhibitory
@@ -171,6 +321,14 @@ void FiringRateModel::update( bool bprint )
 
 		syn.efficacy = efficacy;
     }
+
+#if DebugNeuromodulation
+    if (DebugNeuromodulationPrint) {
+//        cout << "highmod: " << highmod << ",";
+//        cout << "midmod: " << midmod << ",";        
+//        cout << "lowmod: " << lowmod << "\n";
+    }
+#endif
 
     debugcheck( "after updating synapses" );
 

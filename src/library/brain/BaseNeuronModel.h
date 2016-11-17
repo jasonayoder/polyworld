@@ -6,12 +6,13 @@
 #include <string.h>
 #include <strings.h>
 
-#include "Brain.h"
+#include "brain/Brain.h"
 #include "NervousSystem.h"
 #include "NeuronModel.h"
 #include "sim/globals.h"
 #include "utils/AbstractFile.h"
 #include "utils/misc.h"
+#include "genome/NeuronType.h" //ALIFE14
 
 template <typename T_neuron, typename T_neuronattrs, typename T_synapse>
 class BaseNeuronModel : public NeuronModel
@@ -25,6 +26,11 @@ class BaseNeuronModel : public NeuronModel
 		neuronactivation = NULL;
 		newneuronactivation = NULL;
 		synapse = NULL;
+		//ALIFE14 start
+		modulatorysignal = NULL;
+		num_m_synapses = NULL;
+		modulation = NULL;
+		//ALIFE14 end
 
 #if PrintBrain
 		bprinted = false;
@@ -37,6 +43,11 @@ class BaseNeuronModel : public NeuronModel
 		free( neuronactivation );
 		free( newneuronactivation );
 		free( synapse );
+		//ALIFE14 start
+		free( modulatorysignal );
+		free( num_m_synapses );
+		free( modulation );
+		//ALIFE14 end
 	}
 
 	virtual void init_derived( float initial_activation ) = 0;
@@ -51,8 +62,13 @@ class BaseNeuronModel : public NeuronModel
 		__ALLOC( neuron, T_neuron, dims->numNeurons );
 		__ALLOC( neuronactivation, float, dims->numNeurons );
 		__ALLOC( newneuronactivation, float, dims->numNeurons );
-
 		__ALLOC( synapse, T_synapse, dims->numSynapses );
+		//ALIFE14 start
+		__ALLOC( modulatorysignal, float, dims->numNeurons );
+		__ALLOC( modulation, float, dims->numNeurons );
+		__ALLOC( num_m_synapses, int, dims->numNeurons );
+		//ALIFE14 stop
+		
 
 #undef __ALLOC
 
@@ -101,7 +117,9 @@ class BaseNeuronModel : public NeuronModel
 							  int from,
 							  int to,
 							  float efficacy,
-							  float lrate )
+							  float lrate,
+							  int type, //ALIFE14
+							  float modulatoryweight ) //ALIFE14
 	{
 		T_synapse &s = synapse[index];
 
@@ -112,6 +130,10 @@ class BaseNeuronModel : public NeuronModel
 		s.toneuron = to;
 		s.efficacy = efficacy;
 		s.lrate = lrate;
+		//ALIFE14 start
+		s.type = type; 
+		s.modulatoryweight = modulatoryweight;
+		//ALIFE14 end
 
 #if DebugBrainGrow
 		if( DebugBrainGrowPrint )
@@ -216,6 +238,11 @@ class BaseNeuronModel : public NeuronModel
 	T_neuron *neuron;
 	float *neuronactivation;
 	float *newneuronactivation;
+	//ALIFE14 start
+	float *modulatorysignal;
+	float *modulation;
+	int *num_m_synapses;
+	//ALIFE14 end
 	T_synapse *synapse;
 
 #if PrintBrain

@@ -789,7 +789,9 @@ void GroupsBrain::growSynapses( int groupIndex_to,
 									 neuronIndex_from,
 									 neuronIndex_to,
 									 efficacy,
-									 lrate );
+									 lrate,
+									 0,  //TODO
+									 0 ); //TODO
 
 			synapseCount_brain++;
 		}

@@ -50,7 +50,9 @@ class NeuronModel
 							  int from,
 							  int to,
 							  float efficacy,
-							  float lrate ) = 0;
+							  float lrate, 
+							  int type,//ALIFE14
+							  float modulatory_weight) = 0; //ALIFE14 - TODO is this necessary?
 
 	virtual void update( bool bprint ) = 0;
 
