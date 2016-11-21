@@ -2,7 +2,7 @@
 
 namespace sim
 {
-	static const int MAXDOMAINS = 100; // if you change this, you MUST change the schema file. expanded for more compartments
+	static const int MAXDOMAINS = 500; // if you change this, you MUST change the schema file. expanded for more compartments
 	static const int MAXMETABOLISMS = 10;
 	static const int MAXFITNESSITEMS = 5;
 
