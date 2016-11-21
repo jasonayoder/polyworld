@@ -451,6 +451,7 @@ private:
 	
 	StatRecent fYoungFoodEatenRecentStats;
 	StatRecent fOldFoodEatenRecentStats;
+	StatRecent fOldToTotalRatioRecentStats;
 	
 	
 	GeneStats fGeneStats;

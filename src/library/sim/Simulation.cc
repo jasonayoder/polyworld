@@ -3573,6 +3573,10 @@ void TSimulation::Kill( agent* c,
 	fYoungFoodEatenRecentStats.add( youngFoodEaten );
 	fOldFoodEatenRecentStats.add( oldFoodEaten );
 	
+	if (youngFoodEaten >0 || oldFoodEaten > 0) {
+		fOldToTotalRatioRecentStats.add( oldFoodEaten / ( youngFoodEaten + oldFoodEaten )  );
+	}
+	
 	//ratio > 1 means learning happens, < 1 means they do worse later in life
 	//This means we don't count it when an agent eats in only the first or second half of their life
 	if (youngFoodEaten > 0 && oldFoodEaten > 0 ) {
@@ -5180,6 +5184,9 @@ void TSimulation::getStatusText( StatusText& statusText,
 	sprintf( t, "fOldFoodEatenRecentStats = %lu ± %lu [%lu, %lu]", nint( fOldFoodEatenRecentStats.mean() ), nint( fOldFoodEatenRecentStats.stddev() ), (unsigned long) fOldFoodEatenRecentStats.min(), (unsigned long) fOldFoodEatenRecentStats.max() );
 	statusText.push_back( strdup( t ) );
 	
+	//fOldToTotalRatioRecentStats
+	sprintf( t, "fOldToTotalRatioRecentStats = %.2f ± %.2f [%.2f, %.2f]",  fOldToTotalRatioRecentStats.mean() , fOldToTotalRatioRecentStats.stddev() ,  fOldToTotalRatioRecentStats.min(), fOldToTotalRatioRecentStats.max() );
+	statusText.push_back( strdup( t ) );
 	
 
 	// ---
