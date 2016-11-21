@@ -3577,7 +3577,11 @@ void TSimulation::Kill( agent* c,
 	//This means we don't count it when an agent eats in only the first or second half of their life
 	if (youngFoodEaten > 0 && oldFoodEaten > 0 ) {
 		fOldToYoungRatioStats.add( c->foodEatenWhileYoung() / c->foodEatenWhileOld() );
+		fOldToTotalRatioStats.add( c->foodEatenWhileOld() / ( c->foodEatenWhileYoung()  + c->foodEatenWhileOld() ) );
+	} else  if ( youngFoodEaten > 0 || oldFoodEaten > 0  ) {
+		fOldToTotalRatioStats.add( c->foodEatenWhileOld() / ( c->foodEatenWhileYoung()  + c->foodEatenWhileOld() ) );
 	}
+	
 	
 	
 
@@ -5160,7 +5164,10 @@ void TSimulation::getStatusText( StatusText& statusText,
 	//fOldToYoungFoodEatenStats
 	sprintf( t, "OldToYoungFoodRatio = %.2f ± %.2f [%.2f, %.2f]", fOldToYoungRatioStats.mean(), fOldToYoungRatioStats.stddev(), fOldToYoungRatioStats.min(),  fOldToYoungRatioStats.max() );
 	statusText.push_back( strdup( t ) );
-
+	
+	//fOldToTotalFoodEatenStats
+	sprintf( t, "OldToTotalFoodRatio = %.2f ± %.2f [%.2f, %.2f]", fOldToTotalRatioStats.mean(), fOldToTotalRatioStats.stddev(), fOldToYoungRatioStats.min(),  fOldToTotalRatioStats.max() );
+	statusText.push_back( strdup( t ) );
 
 	sprintf( t, "RecLifeSpan = %lu ± %lu [%lu, %lu]", nint( fLifeSpanRecentStats.mean() ), nint( fLifeSpanRecentStats.stddev() ), (unsigned long) fLifeSpanRecentStats.min(), (unsigned long) fLifeSpanRecentStats.max() );
 	statusText.push_back( strdup( t ) );
@@ -5172,6 +5179,7 @@ void TSimulation::getStatusText( StatusText& statusText,
 	//fYoungFoodEatenRecentStats
 	sprintf( t, "fOldFoodEatenRecentStats = %lu ± %lu [%lu, %lu]", nint( fOldFoodEatenRecentStats.mean() ), nint( fOldFoodEatenRecentStats.stddev() ), (unsigned long) fOldFoodEatenRecentStats.min(), (unsigned long) fOldFoodEatenRecentStats.max() );
 	statusText.push_back( strdup( t ) );
+	
 	
 
 	// ---

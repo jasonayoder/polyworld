@@ -409,6 +409,8 @@ private:
 	Stat fYoungFoodEatenStats;
 	Stat fOldFoodEatenStats;
 	Stat fOldToYoungRatioStats;
+	Stat fOldToTotalRatioStats;
+	
 	
 	
 	struct CurrentBrainStats
