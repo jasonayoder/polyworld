@@ -1,0 +1,7 @@
+@version 2
+
+SeedGenomeFromRun True
+SeedPositionFromRun True
+SeedAgents 100
+
+MaxSteps 101

@@ -1,0 +1,6 @@
+@version 2
+
+RecordGenomes True
+
+MaxSteps 101
+RecordPosition Precise
