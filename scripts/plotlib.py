@@ -83,8 +83,13 @@ class Curve:
                                                         self._spec_using(),
                                                         self._spec_with(),
                                                         self.style.id)
+                                                        
         if self.title:
-            spec += " title '%s'" % psencode(self.title)
+        #start modifications for barrier plot specifics        
+            if "pval " in self.title:                       #jasonayoder
+                spec += " title 'Significance'"             #jasonayoder
+            else:
+                spec += " title '%s'" % psencode(self.title)
         else:
             spec += ' notitle'
 
