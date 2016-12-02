@@ -191,6 +191,7 @@ public:
     std::map<long, float> getEatAgeMap();
     float foodEatenWhileOld();
     float foodEatenWhileYoung();
+    float foodEatenFromAtoB(long start, long stop, bool startBeginning);
     
 	void addListener( AgentListener *listener );
 	void removeListener( AgentListener *listener );

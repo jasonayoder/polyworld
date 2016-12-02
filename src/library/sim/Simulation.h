@@ -411,7 +411,10 @@ private:
 	Stat fOldToYoungRatioStats;
 	Stat fOldToTotalRatioStats;
 	
-	
+	Stat fFoodEatenBegin_0_100_Stats;
+	Stat fFoodEatenBegin_100_200_Stats;
+	Stat fFoodEatenEnd_100_0_Stats;
+	Stat fFoodEatenEnd_200_100_Stats;
 	
 	struct CurrentBrainStats
 	{
@@ -452,6 +455,30 @@ private:
 	StatRecent fYoungFoodEatenRecentStats;
 	StatRecent fOldFoodEatenRecentStats;
 	StatRecent fOldToTotalRatioRecentStats;
+	
+	StatRecent fFoodEatenBegin_0_100_RecentStats;       
+    StatRecent fFoodEatenBegin_100_200_RecentStats;
+    StatRecent fFoodEatenEnd_100_0_RecentStats;
+    StatRecent fFoodEatenEnd_200_100_RecentStats; 
+    
+    Stat fFirst100ToSecond100RatioStats;
+    StatRecent fFirst100ToSecond100RatioRecentStats;
+
+	Stat fLast100ToSecondToLast100RatioStats;
+	StatRecent fLast100ToSecondToLast100RatioRecentStats;
+
+	Stat fStart100_200toLast_200_100RatioStats;
+	StatRecent fStart100_200toLast_200_100RatioRecentStats;
+
+	Stat fFirst100ToLast100RatioStats;
+	StatRecent fFirst100ToLast100RatioRecentStats;
+    
+    Stat statsArray[8];
+    StatRecent recentStatsArray [8];
+    char const *statLabelArray [8];    
+    char const *recentStatsLabelArray [8];
+    
+
 	
 	
 	GeneStats fGeneStats;

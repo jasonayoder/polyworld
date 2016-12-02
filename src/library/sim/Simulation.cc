@@ -479,6 +479,8 @@ TSimulation::~TSimulation()
 	for( int i = 0; i < sheets::Sheet::__NTYPES; i++ )
 		delete [] fCurrentBrainStats.sheets.synapseCount[i];
 	delete [] fCurrentBrainStats.sheets.synapseCount;
+	
+
 
 	agent *a;
 
@@ -3566,12 +3568,62 @@ void TSimulation::Kill( agent* c,
 	float youngFoodEaten = c->foodEatenWhileYoung();
 	float oldFoodEaten = c->foodEatenWhileOld();
 	
+	float eatenBegin_0_100 = c->foodEatenFromAtoB(0,100, true );
+	float eatenBegin_100_200 = c->foodEatenFromAtoB(100,200, true );
+	float eatenEnd_100_0 = c->foodEatenFromAtoB(100,0, false );
+	float eatenEnd_200_100 = c->foodEatenFromAtoB(200,100, false );
+	
 	
 	fYoungFoodEatenStats.add( youngFoodEaten );
 	fOldFoodEatenStats.add( oldFoodEaten );
 	
 	fYoungFoodEatenRecentStats.add( youngFoodEaten );
 	fOldFoodEatenRecentStats.add( oldFoodEaten );
+	
+	
+	if (eatenBegin_0_100 > -1.0 ) {
+		fFoodEatenBegin_0_100_Stats.add( eatenBegin_0_100 );
+		fFoodEatenBegin_0_100_RecentStats.add( eatenBegin_0_100 );
+	}
+	
+	if ( eatenBegin_100_200 > -1.0 ) {
+		fFoodEatenBegin_100_200_Stats.add( eatenBegin_100_200 );
+		fFoodEatenBegin_100_200_RecentStats.add( eatenBegin_100_200 );
+	}
+
+	if (eatenEnd_100_0 > -1.0 ) {
+		fFoodEatenEnd_100_0_Stats.add( eatenEnd_100_0 );
+		fFoodEatenEnd_100_0_RecentStats.add( eatenEnd_100_0 );
+	}
+	
+	if ( eatenEnd_200_100 > -1.0 ) {
+		fFoodEatenEnd_200_100_Stats.add( eatenEnd_200_100 );
+		fFoodEatenEnd_200_100_RecentStats.add( eatenEnd_200_100 );
+	}
+	
+	//possible meaningful ratios
+	
+	if ( eatenBegin_100_200 > 0 &&  eatenBegin_0_100 > -1.0 ) {
+		// first 100 to second 100
+		fFirst100ToSecond100RatioStats.add( eatenBegin_0_100 / eatenBegin_100_200 );
+		fFirst100ToSecond100RatioRecentStats.add( eatenBegin_0_100 / eatenBegin_100_200 );
+	}
+	
+	if ( eatenEnd_200_100 > 0 && eatenEnd_100_0 > -1.0 ) {
+		// last 100-0 to 200-100
+		fLast100ToSecondToLast100RatioStats.add( eatenEnd_100_0 / eatenEnd_200_100 );
+		fLast100ToSecondToLast100RatioRecentStats.add( eatenEnd_100_0 / eatenEnd_200_100 );
+		// 100-200  to  200-100
+		fStart100_200toLast_200_100RatioStats.add( eatenBegin_100_200 / eatenEnd_200_100 );
+		fStart100_200toLast_200_100RatioRecentStats.add( eatenBegin_100_200 / eatenEnd_200_100 );
+	}
+	
+	if ( eatenEnd_100_0 > 0 && eatenEnd_100_0 > -1.0 ) {
+		//first 100 to last 100
+		fFirst100ToLast100RatioStats.add( eatenBegin_0_100 / eatenEnd_100_0 );
+		fFirst100ToLast100RatioRecentStats.add( eatenBegin_0_100 / eatenEnd_100_0 );
+	}
+	
 	
 	if (youngFoodEaten >0 || oldFoodEaten > 0) {
 		fOldToTotalRatioRecentStats.add( oldFoodEaten / ( youngFoodEaten + oldFoodEaten )  );
@@ -5187,6 +5239,74 @@ void TSimulation::getStatusText( StatusText& statusText,
 	//fOldToTotalRatioRecentStats
 	sprintf( t, "fOldToTotalRatioRecentStats = %.2f ± %.2f [%.2f, %.2f]",  fOldToTotalRatioRecentStats.mean() , fOldToTotalRatioRecentStats.stddev() ,  fOldToTotalRatioRecentStats.min(), fOldToTotalRatioRecentStats.max() );
 	statusText.push_back( strdup( t ) );
+	
+
+	//*
+//	statsLabelvector.push_back( "First100ToSecond100Ratio" );
+//	recentStatsLabelvector.push_back( "First100ToSecond100RatioRecent" );
+
+	statsArray[4] = fFoodEatenBegin_0_100_Stats;
+    statsArray[5] = fFoodEatenBegin_100_200_Stats;
+    statsArray[6] = fFoodEatenEnd_100_0_Stats;
+    statsArray[7] = fFoodEatenEnd_200_100_Stats;
+
+	statLabelArray[4] = "FoodEatenBegin_0_100";
+	statLabelArray[5] = "FoodEatenBegin_100_200";
+	statLabelArray[6] = "FoodEatenEnd_100_0";
+	statLabelArray[7] = "FoodEatenEnd_200_100";
+
+	recentStatsArray[4] = fFoodEatenBegin_0_100_RecentStats;
+    recentStatsArray[5] = fFoodEatenBegin_100_200_RecentStats;
+    recentStatsArray[6] = fFoodEatenEnd_100_0_RecentStats;
+    recentStatsArray[7] = fFoodEatenEnd_200_100_RecentStats;
+
+	recentStatsLabelArray[4] = "FoodEatenBegin_0_100_Recent";
+	recentStatsLabelArray[5] = "FoodEatenBegin_100_200_Recent";
+	recentStatsLabelArray[6] = "FoodEatenEnd_100_0_Recent";
+	recentStatsLabelArray[7] = "FoodEatenEnd_200_100_Recent";
+
+
+
+	
+	statsArray[0]= fFirst100ToSecond100RatioStats ;
+	statsArray[1]= fLast100ToSecondToLast100RatioStats;
+	statsArray[2]= fStart100_200toLast_200_100RatioStats;
+	statsArray[3]= fFirst100ToLast100RatioStats;
+	
+	recentStatsArray[0] = fFirst100ToSecond100RatioRecentStats;
+	recentStatsArray[1] = fLast100ToSecondToLast100RatioRecentStats;
+	recentStatsArray[2] = fStart100_200toLast_200_100RatioRecentStats;
+	recentStatsArray[3] = fFirst100ToLast100RatioRecentStats;
+	
+	recentStatsLabelArray[0] = "First100ToSecond100RatioRecent";
+	recentStatsLabelArray[1] = "Last100ToSecondToLast100RatioRecent";
+	recentStatsLabelArray[2] = "Start100_200toLast_200_100RatioRecent";
+	recentStatsLabelArray[3] = "First100ToLast100RatioRecent";
+	
+	statLabelArray[0] = "First100ToSecond100Ratio";
+	statLabelArray[1] = "First100ToSecond100Ratio";
+	statLabelArray[2] = "Start100_200toLast_200_100Ratio";
+	statLabelArray[3] = "First100ToLast100Ratio";
+	
+	//RecentStat recentStatsArr [4] = {fFirst100ToSecond100RatioRecentStats, fLast100ToSecondToLast100RatioRecentStats, fStart100_200toLast_200_100RatioRecentStats, fFirst100ToLast100RatioRecentStats };
+	//Stat statsArr [4] = {fFirst100ToSecond100RatioStats, fLast100ToSecondToLast100RatioStats, fStart100_200toLast_200_100RatioStats, fFirst100ToLast100RatioStats };
+	//String recentStatLabelArr [4] = { "First100ToSecond100RatioRecent","Last100ToSecondToLast100RatioRecent","Start100_200toLast_200_100RatioRecent","First100ToLast100RatioRecent"};
+	//String statLabelArr [4] = {"First100ToSecond100Ratio","Last100ToSecondToLast100Ratio","Start100_200toLast_200_100Ratio","First100ToLast100Ratio"};
+	
+	
+	
+	//*
+	for (int i=0; i < 8; i++) {
+		//recent stats first
+		sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]",recentStatsLabelArray[i],  recentStatsArray[i].mean() , recentStatsArray[i].stddev() ,  recentStatsArray[i].min(), recentStatsArray[i].max() );
+		statusText.push_back( strdup( t ) );
+		
+		//regular stats
+		sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", statLabelArray[i] , statsArray[i].mean(), statsArray[i].stddev(), statsArray[i].min(),  statsArray[i].max() );
+		statusText.push_back( strdup( t ) );		
+	}
+	
+	//*/
 	
 
 	// ---

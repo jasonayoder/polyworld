@@ -860,7 +860,6 @@ float agent::foodEatenWhileYoung()
     //Could add other options here, for instance only consider agents that live to a certain lifetime
     //Also could consider having timebins to compare % of food eaten
     float firstHalf = 0.0; 
-    float secondHalf = 0.0;
     float midLife = Age()/2.0;
 
     for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
@@ -885,7 +884,6 @@ float agent::foodEatenWhileOld()
     std::map<long, float> m = getEatAgeMap();
     //Could add other options here, for instance only consider agents that live to a certain lifetime
     //Also could consider having timebins to compare % of food eaten
-    float firstHalf = 0.0; 
     float secondHalf = 0.0;
     float midLife = Age()/2.0;
 
@@ -898,6 +896,61 @@ float agent::foodEatenWhileOld()
     }
             
     return secondHalf;
+}
+
+//---------------------------------------------------------------------------
+// agent::foodEatenFromAtoB(long start, long stop, bool startBeginning)
+//
+// can be used to get food eaten in first 100 steps -> foodEatenFromAtoB(0, 100, true)
+// can be used to get food eaten in  last 100 steps -> foodEatenFromAtoB(100, 0, false)
+//
+//---------------------------------------------------------------------------    
+float agent::foodEatenFromAtoB(long start, long stop, bool startBeginning)
+{
+    //Iterator for age-eat map
+    typedef std::map<long, float>::iterator it_type;
+    std::map<long, float> m = getEatAgeMap();
+    float intervalFood = 0.0; 
+
+    //sanity checks- return -1 to mean invalid data
+    if ( startBeginning ){
+        //this means that we are asking for data in a range that would not have a symmetric pair
+        if ( stop*2 > Age() ) {
+            return -1.0;
+        }
+    } else {
+        //this means that we are asking for data in a range that would not have a symmetric pair
+        if ( start*2 > Age() ) {
+            return -1.0;
+        }
+    }
+
+
+    for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+            long age =  iterator->first;
+            float food = iterator->second;
+            
+            if ( startBeginning ) {
+                if ( start <= age && stop >= age   ) {
+                    intervalFood += food;
+                }
+            } else {
+                if (start < stop ) {
+                    cout << "start=" << start << " stop= " << stop << "\n";
+                    cout << "MUST specify start greater than stop when starting from end\n";
+                    assert(false);
+                }
+                
+                long new_start = Age() - start;
+                long new_stop = Age() - stop;
+                
+                if ( new_start <= age && new_stop >= age   ) {
+                    intervalFood += food;
+                }
+            }
+    }
+    return intervalFood;
+
 }
 
 
