@@ -449,37 +449,66 @@ private:
 			Stat **synapseCount;
 		} sheets;
 	} fCurrentBrainStats;
+
 	StatRecent fLifeSpanRecentStats;
 	StatRecent fLifeFractionRecentStats;
-	
+
 	StatRecent fYoungFoodEatenRecentStats;
 	StatRecent fOldFoodEatenRecentStats;
 	StatRecent fOldToTotalRatioRecentStats;
-	
+
 	StatRecent fFoodEatenBegin_0_100_RecentStats;       
     StatRecent fFoodEatenBegin_100_200_RecentStats;
     StatRecent fFoodEatenEnd_100_0_RecentStats;
     StatRecent fFoodEatenEnd_200_100_RecentStats; 
     
-    Stat fFirst100ToSecond100RatioStats;
+    
+    StatRecent fFoodEatenBegin_0_100_RecentStatsNorm;       
+    StatRecent fFoodEatenBegin_100_200_RecentStatsNorm;
+    StatRecent fFoodEatenEnd_100_0_RecentStatsNorm;
+    StatRecent fFoodEatenEnd_200_100_RecentStatsNorm; 
+    
     StatRecent fFirst100ToSecond100RatioRecentStats;
-
-	Stat fLast100ToSecondToLast100RatioStats;
 	StatRecent fLast100ToSecondToLast100RatioRecentStats;
-
-	Stat fStart100_200toLast_200_100RatioStats;
 	StatRecent fStart100_200toLast_200_100RatioRecentStats;
-
-	Stat fFirst100ToLast100RatioStats;
 	StatRecent fFirst100ToLast100RatioRecentStats;
-    
-    Stat statsArray[8];
-    StatRecent recentStatsArray [8];
-    char const *statLabelArray [8];    
-    char const *recentStatsLabelArray [8];
-    
-
 	
+    Stat fFirst100ToSecond100RatioStats;
+	Stat fLast100ToSecondToLast100RatioStats;
+	Stat fStart100_200toLast_200_100RatioStats;
+	Stat fFirst100ToLast100RatioStats;
+	
+	StatRecent fFoodEatenBegin_0_100_StatsNorm;       
+    StatRecent fFoodEatenBegin_100_200_StatsNorm;
+    StatRecent fFoodEatenEnd_100_0_StatsNorm;
+    StatRecent fFoodEatenEnd_200_100_StatsNorm; 
+
+    
+    Stat fQ1Stat;
+    Stat fQ2Stat;
+    Stat fQ3Stat;
+    Stat fQ4Stat;
+    
+    StatRecent fQ1StatRecent;
+    StatRecent fQ2StatRecent;
+    StatRecent fQ3StatRecent;
+    StatRecent fQ4StatRecent;    
+    
+    Stat fNormalizedQ1Stat;
+    Stat fNormalizedQ2Stat;
+    Stat fNormalizedQ3Stat;
+    Stat fNormalizedQ4Stat;
+    
+    StatRecent fNormalizedQ1StatRecent;
+    StatRecent fNormalizedQ2StatRecent;
+    StatRecent fNormalizedQ3StatRecent;
+    StatRecent fNormalizedQ4StatRecent;    
+    
+    //GRAVEYARD
+    //Stat statsArray[8];
+    //StatRecent recentStatsArray [8];
+    //char const *statLabelArray [8];    
+    //char const *recentStatsLabelArray [8];
 	
 	GeneStats fGeneStats;
 

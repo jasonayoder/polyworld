@@ -3573,6 +3573,11 @@ void TSimulation::Kill( agent* c,
 	float eatenEnd_100_0 = c->foodEatenFromAtoB(100,0, false );
 	float eatenEnd_200_100 = c->foodEatenFromAtoB(200,100, false );
 	
+	float eatenBegin_0_100Norm = c->foodEatenFromAtoBNormalized(0,100, true );
+	float eatenBegin_100_200Norm = c->foodEatenFromAtoBNormalized(100,200, true );
+	float eatenEnd_100_0Norm = c->foodEatenFromAtoBNormalized(100,0, false );
+	float eatenEnd_200_100Norm = c->foodEatenFromAtoBNormalized(200,100, false );
+	
 	
 	fYoungFoodEatenStats.add( youngFoodEaten );
 	fOldFoodEatenStats.add( oldFoodEaten );
@@ -3583,22 +3588,30 @@ void TSimulation::Kill( agent* c,
 	
 	if (eatenBegin_0_100 > -1.0 ) {
 		fFoodEatenBegin_0_100_Stats.add( eatenBegin_0_100 );
+		fFoodEatenBegin_0_100_StatsNorm.add( eatenBegin_0_100Norm );
 		fFoodEatenBegin_0_100_RecentStats.add( eatenBegin_0_100 );
+		fFoodEatenBegin_0_100_RecentStatsNorm.add( eatenBegin_0_100Norm );
 	}
 	
 	if ( eatenBegin_100_200 > -1.0 ) {
 		fFoodEatenBegin_100_200_Stats.add( eatenBegin_100_200 );
+		fFoodEatenBegin_100_200_StatsNorm.add( eatenBegin_100_200Norm );
 		fFoodEatenBegin_100_200_RecentStats.add( eatenBegin_100_200 );
+		fFoodEatenBegin_100_200_RecentStatsNorm.add( eatenBegin_100_200Norm );
 	}
 
 	if (eatenEnd_100_0 > -1.0 ) {
 		fFoodEatenEnd_100_0_Stats.add( eatenEnd_100_0 );
+		fFoodEatenEnd_100_0_StatsNorm.add( eatenEnd_100_0Norm );
 		fFoodEatenEnd_100_0_RecentStats.add( eatenEnd_100_0 );
+		fFoodEatenEnd_100_0_RecentStatsNorm.add( eatenEnd_100_0Norm );
 	}
 	
 	if ( eatenEnd_200_100 > -1.0 ) {
 		fFoodEatenEnd_200_100_Stats.add( eatenEnd_200_100 );
+		fFoodEatenEnd_200_100_StatsNorm.add( eatenEnd_200_100Norm );
 		fFoodEatenEnd_200_100_RecentStats.add( eatenEnd_200_100 );
+		fFoodEatenEnd_200_100_RecentStatsNorm.add( eatenEnd_200_100Norm );
 	}
 	
 	//possible meaningful ratios
@@ -3638,7 +3651,69 @@ void TSimulation::Kill( agent* c,
 		fOldToTotalRatioStats.add( c->foodEatenWhileOld() / ( c->foodEatenWhileYoung()  + c->foodEatenWhileOld() ) );
 	}
 	
+	float q1stat = c->foodEatenQ1();
+	float q2stat = c->foodEatenQ2();
+	float q3stat = c->foodEatenQ3();
+	float q4stat = c->foodEatenQ4();
 	
+	float q1statNorm = c->foodEatenQ1Normalized();
+	float q2statNorm = c->foodEatenQ2Normalized();
+	float q3statNorm = c->foodEatenQ3Normalized();
+	float q4statNorm = c->foodEatenQ4Normalized();
+	
+	
+	if (q1stat > -1.0 ) {
+		fQ1Stat.add( q1stat );
+	}
+	if (q2stat > -1.0 ) {
+		fQ2Stat.add( q2stat );
+	}
+	if (q3stat > -1.0 ) {
+		fQ3Stat.add( q3stat );
+	}
+	if (q4stat > -1.0 ) {
+		fQ4Stat.add( q4stat );
+	}
+		
+	if (q1statNorm > -1.0 ) {
+		fNormalizedQ1Stat.add( q1statNorm );
+	}
+	if (q2statNorm > -1.0 ) {
+		fNormalizedQ2Stat.add( q2statNorm );
+	}
+	if (q3statNorm > -1.0 ) {
+		fNormalizedQ3Stat.add( q3statNorm );
+	}
+	if (q4statNorm > -1.0 ) {
+		fNormalizedQ4Stat.add( q4statNorm );
+	}
+	
+	
+	if (q1stat > -1.0 ) {
+		fQ1StatRecent.add( q1stat );
+	}
+	if (q2stat > -1.0 ) {
+		fQ2StatRecent.add( q2stat );
+	}
+	if (q3stat > -1.0 ) {
+		fQ3StatRecent.add( q3stat );
+	}
+	if (q4stat > -1.0 ) {
+		fQ4StatRecent.add( q4stat );
+	}
+		
+	if (q1statNorm > -1.0 ) {
+		fNormalizedQ1StatRecent.add( q1statNorm );
+	}
+	if (q2statNorm > -1.0 ) {
+		fNormalizedQ2StatRecent.add( q2statNorm );
+	}
+	if (q3statNorm > -1.0 ) {
+		fNormalizedQ3StatRecent.add( q3statNorm );
+	}
+	if (q4statNorm > -1.0 ) {
+		fNormalizedQ4StatRecent.add( q4statNorm );
+	}
 	
 
 	// ---
@@ -5241,72 +5316,178 @@ void TSimulation::getStatusText( StatusText& statusText,
 	statusText.push_back( strdup( t ) );
 	
 
-	//*
+//*   CODE GRAVEYARD - this would be so much better if I could make it work
 //	statsLabelvector.push_back( "First100ToSecond100Ratio" );
 //	recentStatsLabelvector.push_back( "First100ToSecond100RatioRecent" );
-
+/*
+	statsArray[0]= fFirst100ToSecond100RatioStats ;
+	statsArray[1]= fLast100ToSecondToLast100RatioStats;
+	statsArray[2]= fStart100_200toLast_200_100RatioStats;
+	statsArray[3]= fFirst100ToLast100RatioStats;
 	statsArray[4] = fFoodEatenBegin_0_100_Stats;
     statsArray[5] = fFoodEatenBegin_100_200_Stats;
     statsArray[6] = fFoodEatenEnd_100_0_Stats;
     statsArray[7] = fFoodEatenEnd_200_100_Stats;
+	statLabelArray[0] = "First100ToSecond100Ratio";
+	statLabelArray[1] = "Last100ToSecondToLast100Ratio";
+	statLabelArray[2] = "Start100_200toLast200100Ratio";
+	statLabelArray[3] = "First100ToLast100Ratio";
+	statLabelArray[4] = "FoodEatenBegin0100";
+	statLabelArray[5] = "FoodEatenBegin100200";
+	statLabelArray[6] = "FoodEatenEnd1000";
+	statLabelArray[7] = "FoodEatenEnd200100";
 
-	statLabelArray[4] = "FoodEatenBegin_0_100";
-	statLabelArray[5] = "FoodEatenBegin_100_200";
-	statLabelArray[6] = "FoodEatenEnd_100_0";
-	statLabelArray[7] = "FoodEatenEnd_200_100";
 
+
+/////////////////////////////////
+
+	recentStatsArray[0] = fFirst100ToSecond100RatioRecentStats;
+	recentStatsArray[1] = fLast100ToSecondToLast100RatioRecentStats;
+	recentStatsArray[2] = fStart100_200toLast_200_100RatioRecentStats;
+	recentStatsArray[3] = fFirst100ToLast100RatioRecentStats;
 	recentStatsArray[4] = fFoodEatenBegin_0_100_RecentStats;
     recentStatsArray[5] = fFoodEatenBegin_100_200_RecentStats;
     recentStatsArray[6] = fFoodEatenEnd_100_0_RecentStats;
     recentStatsArray[7] = fFoodEatenEnd_200_100_RecentStats;
-
+	recentStatsLabelArray[0] = "First100ToSecond100RatioRecent";
+	recentStatsLabelArray[1] = "Last100ToSecondToLast100RatioRecent";
+	recentStatsLabelArray[2] = "Start100_200toLast_200_100RatioRecent";
+	recentStatsLabelArray[3] = "First100ToLast100RatioRecent";
 	recentStatsLabelArray[4] = "FoodEatenBegin_0_100_Recent";
 	recentStatsLabelArray[5] = "FoodEatenBegin_100_200_Recent";
 	recentStatsLabelArray[6] = "FoodEatenEnd_100_0_Recent";
 	recentStatsLabelArray[7] = "FoodEatenEnd_200_100_Recent";
 
 
-
-	
-	statsArray[0]= fFirst100ToSecond100RatioStats ;
-	statsArray[1]= fLast100ToSecondToLast100RatioStats;
-	statsArray[2]= fStart100_200toLast_200_100RatioStats;
-	statsArray[3]= fFirst100ToLast100RatioStats;
-	
-	recentStatsArray[0] = fFirst100ToSecond100RatioRecentStats;
-	recentStatsArray[1] = fLast100ToSecondToLast100RatioRecentStats;
-	recentStatsArray[2] = fStart100_200toLast_200_100RatioRecentStats;
-	recentStatsArray[3] = fFirst100ToLast100RatioRecentStats;
-	
-	recentStatsLabelArray[0] = "First100ToSecond100RatioRecent";
-	recentStatsLabelArray[1] = "Last100ToSecondToLast100RatioRecent";
-	recentStatsLabelArray[2] = "Start100_200toLast_200_100RatioRecent";
-	recentStatsLabelArray[3] = "First100ToLast100RatioRecent";
-	
-	statLabelArray[0] = "First100ToSecond100Ratio";
-	statLabelArray[1] = "First100ToSecond100Ratio";
-	statLabelArray[2] = "Start100_200toLast_200_100Ratio";
-	statLabelArray[3] = "First100ToLast100Ratio";
-	
-	//RecentStat recentStatsArr [4] = {fFirst100ToSecond100RatioRecentStats, fLast100ToSecondToLast100RatioRecentStats, fStart100_200toLast_200_100RatioRecentStats, fFirst100ToLast100RatioRecentStats };
-	//Stat statsArr [4] = {fFirst100ToSecond100RatioStats, fLast100ToSecondToLast100RatioStats, fStart100_200toLast_200_100RatioStats, fFirst100ToLast100RatioStats };
-	//String recentStatLabelArr [4] = { "First100ToSecond100RatioRecent","Last100ToSecondToLast100RatioRecent","Start100_200toLast_200_100RatioRecent","First100ToLast100RatioRecent"};
-	//String statLabelArr [4] = {"First100ToSecond100Ratio","Last100ToSecondToLast100Ratio","Start100_200toLast_200_100Ratio","First100ToLast100Ratio"};
-	
-	
-	
-	//*
 	for (int i=0; i < 8; i++) {
 		//recent stats first
-		sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]",recentStatsLabelArray[i],  recentStatsArray[i].mean() , recentStatsArray[i].stddev() ,  recentStatsArray[i].min(), recentStatsArray[i].max() );
-		statusText.push_back( strdup( t ) );
-		
 		//regular stats
-		sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", statLabelArray[i] , statsArray[i].mean(), statsArray[i].stddev(), statsArray[i].min(),  statsArray[i].max() );
-		statusText.push_back( strdup( t ) );		
 	}
-	
 	//*/
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "First100ToSecond100Ratio" , fFirst100ToSecond100RatioStats.mean(), fFirst100ToSecond100RatioStats.stddev(), fFirst100ToSecond100RatioStats.min(),  fFirst100ToSecond100RatioStats.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "Last100ToSecondToLast100Ratio" , fLast100ToSecondToLast100RatioStats.mean(), fLast100ToSecondToLast100RatioStats.stddev(), fLast100ToSecondToLast100RatioStats.min(),  fLast100ToSecondToLast100RatioStats.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "Start100_200toLast200100Ratio" , fStart100_200toLast_200_100RatioStats.mean(), fStart100_200toLast_200_100RatioStats.stddev(), fStart100_200toLast_200_100RatioStats.min(),  fStart100_200toLast_200_100RatioStats.max() );
+	statusText.push_back( strdup( t ) );		
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "First100ToLast100Ratio" , fFirst100ToLast100RatioStats.mean(), fFirst100ToLast100RatioStats.stddev(), fFirst100ToLast100RatioStats.min(),  fFirst100ToLast100RatioStats.max() );
+	statusText.push_back( strdup( t ) );		
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin0100" , fFoodEatenBegin_0_100_Stats.mean(), fFoodEatenBegin_0_100_Stats.stddev(), fFoodEatenBegin_0_100_Stats.min(),  fFoodEatenBegin_0_100_Stats.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin100200" , fFoodEatenBegin_100_200_Stats.mean(), fFoodEatenBegin_100_200_Stats.stddev(), fFoodEatenBegin_100_200_Stats.min(),  fFoodEatenBegin_100_200_Stats.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd1000" , fFoodEatenEnd_100_0_Stats.mean(), fFoodEatenEnd_100_0_Stats.stddev(), fFoodEatenEnd_100_0_Stats.min(),  fFoodEatenEnd_100_0_Stats.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd200100" , fFoodEatenEnd_200_100_Stats.mean(), fFoodEatenEnd_200_100_Stats.stddev(), fFoodEatenEnd_200_100_Stats.min(),  fFoodEatenEnd_200_100_Stats.max() );
+	statusText.push_back( strdup( t ) );		
+	
+	
+
+//////
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "First100ToSecond100RatioRecent"  ,  fFirst100ToSecond100RatioRecentStats.mean() , fFirst100ToSecond100RatioRecentStats.stddev() ,  fFirst100ToSecond100RatioRecentStats.min(), fFirst100ToSecond100RatioRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "Last100ToSecondToLast100RatioRecent" ,  fLast100ToSecondToLast100RatioRecentStats.mean() , fLast100ToSecondToLast100RatioRecentStats.stddev() ,  fLast100ToSecondToLast100RatioRecentStats.min(), fLast100ToSecondToLast100RatioRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "Start100_200toLast_200_100RatioRecent" ,  fStart100_200toLast_200_100RatioRecentStats.mean() , fStart100_200toLast_200_100RatioRecentStats.stddev() ,  fStart100_200toLast_200_100RatioRecentStats.min(), fStart100_200toLast_200_100RatioRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "First100ToLast100RatioRecent" ,  fFirst100ToLast100RatioRecentStats.mean() , fFirst100ToLast100RatioRecentStats.stddev() ,  fFirst100ToLast100RatioRecentStats.min(), fFirst100ToLast100RatioRecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin_0_100_Recent" ,  fFoodEatenBegin_0_100_RecentStats.mean() , fFoodEatenBegin_0_100_RecentStats.stddev() ,  fFoodEatenBegin_0_100_RecentStats.min(), fFoodEatenBegin_0_100_RecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin_100_200_Recent" ,  fFoodEatenBegin_100_200_RecentStats.mean() , fFoodEatenBegin_100_200_RecentStats.stddev() ,  fFoodEatenBegin_100_200_RecentStats.min(), fFoodEatenBegin_100_200_RecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd_100_0_Recent" ,  fFoodEatenEnd_100_0_RecentStats.mean() , fFoodEatenEnd_100_0_RecentStats.stddev() ,  fFoodEatenEnd_100_0_RecentStats.min(), fFoodEatenEnd_100_0_RecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd_200_100_Recent" ,  fFoodEatenEnd_200_100_RecentStats.mean() , fFoodEatenEnd_200_100_RecentStats.stddev() ,  fFoodEatenEnd_200_100_RecentStats.min(), fFoodEatenEnd_200_100_RecentStats.max() );
+	statusText.push_back( strdup( t ) );
+	
+	//NORM
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin_0_100_RecentNorm" ,  fFoodEatenBegin_0_100_RecentStatsNorm.mean() , fFoodEatenBegin_0_100_RecentStatsNorm.stddev() ,  fFoodEatenBegin_0_100_RecentStatsNorm.min(), fFoodEatenBegin_0_100_RecentStatsNorm.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenBegin_100_200_RecentNorm" ,  fFoodEatenBegin_100_200_RecentStatsNorm.mean() , fFoodEatenBegin_100_200_RecentStatsNorm.stddev() ,  fFoodEatenBegin_100_200_RecentStatsNorm.min(), fFoodEatenBegin_100_200_RecentStatsNorm.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd_100_0_RecentNorm" ,  fFoodEatenEnd_100_0_RecentStatsNorm.mean() , fFoodEatenEnd_100_0_RecentStatsNorm.stddev() ,  fFoodEatenEnd_100_0_RecentStatsNorm.min(), fFoodEatenEnd_100_0_RecentStatsNorm.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "FoodEatenEnd_200_100_RecentNorm" ,  fFoodEatenEnd_200_100_RecentStatsNorm.mean() , fFoodEatenEnd_200_100_RecentStatsNorm.stddev() ,  fFoodEatenEnd_200_100_RecentStatsNorm.min(), fFoodEatenEnd_200_100_RecentStatsNorm.max() );
+	statusText.push_back( strdup( t ) );
+	
+	
+	/////////////////////
+	//REGULAR
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ1Stat" , fNormalizedQ1Stat.mean(), fNormalizedQ1Stat.stddev(), fNormalizedQ1Stat.min(),  fNormalizedQ1Stat.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ2Stat" , fNormalizedQ2Stat.mean(), fNormalizedQ2Stat.stddev(), fNormalizedQ2Stat.min(),  fNormalizedQ2Stat.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ3Stat" , fNormalizedQ3Stat.mean(), fNormalizedQ3Stat.stddev(), fNormalizedQ3Stat.min(),  fNormalizedQ3Stat.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ4Stat" , fNormalizedQ4Stat.mean(), fNormalizedQ4Stat.stddev(), fNormalizedQ4Stat.min(),  fNormalizedQ4Stat.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ1StatRecent" , fNormalizedQ1StatRecent.mean(), fNormalizedQ1StatRecent.stddev(), fNormalizedQ1StatRecent.min(),  fNormalizedQ1StatRecent.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ2StatRecent" , fNormalizedQ2StatRecent.mean(), fNormalizedQ2StatRecent.stddev(), fNormalizedQ2StatRecent.min(),  fNormalizedQ2StatRecent.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ3StatRecent" , fNormalizedQ3StatRecent.mean(), fNormalizedQ3StatRecent.stddev(), fNormalizedQ3StatRecent.min(),  fNormalizedQ3StatRecent.max() );
+	statusText.push_back( strdup( t ) );		
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fNormalizedQ4StatRecent" , fNormalizedQ4StatRecent.mean(), fNormalizedQ4StatRecent.stddev(), fNormalizedQ4StatRecent.min(),  fNormalizedQ4StatRecent.max() );
+	statusText.push_back( strdup( t ) );		
+
+
+
+	//RECENT
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ1Stat"  ,  fQ1Stat.mean() , fQ1Stat.stddev() ,  fQ1Stat.min(), fQ1Stat.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ2Stat"  ,  fQ2Stat.mean() , fQ2Stat.stddev() ,  fQ2Stat.min(), fQ2Stat.max() );
+	statusText.push_back( strdup( t ) );
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ3Stat"  ,  fQ3Stat.mean() , fQ3Stat.stddev() ,  fQ3Stat.min(), fQ3Stat.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ4Stat"  ,  fQ4Stat.mean() , fQ4Stat.stddev() ,  fQ4Stat.min(), fQ4Stat.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ1StatRecent"  ,  fQ1StatRecent.mean() , fQ1StatRecent.stddev() ,  fQ1StatRecent.min(), fQ1StatRecent.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ2StatRecent"  ,  fQ2StatRecent.mean() , fQ2StatRecent.stddev() ,  fQ2StatRecent.min(), fQ2StatRecent.max() );
+	statusText.push_back( strdup( t ) );
+
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ3StatRecent"  ,  fQ3StatRecent.mean() , fQ3StatRecent.stddev() ,  fQ3StatRecent.min(), fQ3StatRecent.max() );
+	statusText.push_back( strdup( t ) );
+	
+	sprintf( t, "%s = %.3f ± %.3f [%.3f, %.3f]", "fQ4StatRecent"  ,  fQ4StatRecent.mean() , fQ4StatRecent.stddev() ,  fQ4StatRecent.min(), fQ4StatRecent.max() );
+	statusText.push_back( strdup( t ) );
+	
+	
+	
+	
 	
 
 	// ---

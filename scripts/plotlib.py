@@ -10,7 +10,7 @@ import common_functions
 ###
 ####################################################################################
 class CurveStyle:
-    COLORS = ['red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown', 'red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown']
+    COLORS = ['red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown', 'red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown', 'red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown', 'red', 'green', 'blue', 'orange', 'pink', 'magenta', 'gray40', 'cyan', 'gold', 'purple', 'yellow', 'black', 'brown']
 
     GRAY = 'gray40'
     BLACK = 'black'

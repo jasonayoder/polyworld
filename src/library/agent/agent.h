@@ -192,6 +192,18 @@ public:
     float foodEatenWhileOld();
     float foodEatenWhileYoung();
     float foodEatenFromAtoB(long start, long stop, bool startBeginning);
+    float foodEatenFromAtoBNormalized(long start, long stop, bool startBeginning);
+    
+    float foodEatenQ1();
+    float foodEatenQ2();
+    float foodEatenQ3();
+    float foodEatenQ4();
+    
+    float foodEatenQ1Normalized();
+    float foodEatenQ2Normalized();
+    float foodEatenQ3Normalized();
+    float foodEatenQ4Normalized();
+    
     
 	void addListener( AgentListener *listener );
 	void removeListener( AgentListener *listener );

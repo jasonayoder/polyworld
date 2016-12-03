@@ -955,6 +955,114 @@ float agent::foodEatenFromAtoB(long start, long stop, bool startBeginning)
 
 
 //---------------------------------------------------------------------------
+// agent::foodEatenFromAtoBNormalized(long start, long stop, bool startBeginning)
+//
+// can be used to get food eaten in first 100 steps relative to overall eat rate -> foodEatenFromAtoBNormalized(0, 100, true)
+// can be used to get food eaten in  last 100 steps relative to overall eat rate -> foodEatenFromAtoBNormalized(100, 0, false)
+//
+//---------------------------------------------------------------------------    
+float agent::foodEatenFromAtoBNormalized(long start, long stop, bool startBeginning)
+{
+    //Iterator for age-eat map
+    typedef std::map<long, float>::iterator it_type;
+    std::map<long, float> m = getEatAgeMap();
+    float intervalFood = 0.0; 
+    float totalFood = 0.0;
+
+    //sanity checks- return -1 to mean invalid data
+    if ( startBeginning ){
+        //this means that we are asking for data in a range that would not have a symmetric pair
+        if ( stop*2 > Age() ) {
+            return -1.0;
+        }
+    } else {
+        //this means that we are asking for data in a range that would not have a symmetric pair
+        if ( start*2 > Age() ) {
+            return -1.0;
+        }
+    }
+
+
+    for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+            long age =  iterator->first;
+            float food = iterator->second;
+            totalFood += food;
+            
+            if ( startBeginning ) {
+                if ( start <= age && stop >= age   ) {
+                    intervalFood += food;
+                }
+            } else {
+                if (start < stop ) {
+                    cout << "start=" << start << " stop= " << stop << "\n";
+                    cout << "MUST specify start greater than stop when starting from end\n";
+                    assert(false);
+                }
+                
+                long new_start = Age() - start;
+                long new_stop = Age() - stop;
+                
+                if ( new_start <= age && new_stop >= age   ) {
+                    intervalFood += food;
+                }
+            }
+    }
+    
+    float foodEatenPerTimestep = totalFood / Age();
+    float expectedConsumption = foodEatenPerTimestep * abs( stop - start );
+    
+    
+    return intervalFood / expectedConsumption;
+}
+
+float agent::foodEatenQ1() {
+    int q =  static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoB(0, q, true );
+}
+
+float agent::foodEatenQ2() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoB(q, 2*q, true );
+}
+
+float agent::foodEatenQ3() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoB(2*q, q, false );
+}
+
+float agent::foodEatenQ4() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoB(q, 0, false );
+}
+
+
+
+
+float agent::foodEatenQ1Normalized() {
+    int q =  static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoBNormalized(0, q, true );
+}
+
+float agent::foodEatenQ2Normalized() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoBNormalized(q, 2*q, true );
+}
+
+float agent::foodEatenQ3Normalized() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoBNormalized(2*q, q, false );
+}
+
+float agent::foodEatenQ4Normalized() {
+    int q = static_cast<int>( Age()/4.0 );
+    return agent::foodEatenFromAtoBNormalized(q, 0, false );
+}
+
+
+
+
+
+//---------------------------------------------------------------------------
 // agent::Die
 //---------------------------------------------------------------------------    
 void agent::Die()
