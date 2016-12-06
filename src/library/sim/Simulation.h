@@ -411,10 +411,7 @@ private:
 	Stat fOldToYoungRatioStats;
 	Stat fOldToTotalRatioStats;
 	
-	Stat fFoodEatenBegin_0_100_Stats;
-	Stat fFoodEatenBegin_100_200_Stats;
-	Stat fFoodEatenEnd_100_0_Stats;
-	Stat fFoodEatenEnd_200_100_Stats;
+
 	
 	struct CurrentBrainStats
 	{
@@ -457,17 +454,36 @@ private:
 	StatRecent fOldFoodEatenRecentStats;
 	StatRecent fOldToTotalRatioRecentStats;
 
+///////count food in age intervals
+	Stat fFoodEatenBegin_0_100_Stats;
+	Stat fFoodEatenBegin_100_200_Stats;
+	Stat fFoodEatenEnd_100_0_Stats;
+	Stat fFoodEatenEnd_200_100_Stats;
+	Stat fFoodEatenBegin_200_300_Stats;
+	Stat fFoodEatenBegin_300_400_Stats;
+	Stat fFoodEatenEnd_300_200_Stats;
+	Stat fFoodEatenEnd_400_300_Stats;
+
 	StatRecent fFoodEatenBegin_0_100_RecentStats;       
     StatRecent fFoodEatenBegin_100_200_RecentStats;
     StatRecent fFoodEatenEnd_100_0_RecentStats;
     StatRecent fFoodEatenEnd_200_100_RecentStats; 
-    
-    
+	StatRecent fFoodEatenBegin_200_300_RecentStats;       
+    StatRecent fFoodEatenBegin_300_400_RecentStats;
+    StatRecent fFoodEatenEnd_300_200_RecentStats;
+    StatRecent fFoodEatenEnd_400_300_RecentStats;     
+  
     StatRecent fFoodEatenBegin_0_100_RecentStatsNorm;       
     StatRecent fFoodEatenBegin_100_200_RecentStatsNorm;
     StatRecent fFoodEatenEnd_100_0_RecentStatsNorm;
     StatRecent fFoodEatenEnd_200_100_RecentStatsNorm; 
+    StatRecent fFoodEatenBegin_200_300_RecentStatsNorm;       
+    StatRecent fFoodEatenBegin_300_400_RecentStatsNorm;
+    StatRecent fFoodEatenEnd_300_200_RecentStatsNorm;
+    StatRecent fFoodEatenEnd_400_300_RecentStatsNorm;     
     
+    
+//////////    
     StatRecent fFirst100ToSecond100RatioRecentStats;
 	StatRecent fLast100ToSecondToLast100RatioRecentStats;
 	StatRecent fStart100_200toLast_200_100RatioRecentStats;
@@ -482,6 +498,10 @@ private:
     StatRecent fFoodEatenBegin_100_200_StatsNorm;
     StatRecent fFoodEatenEnd_100_0_StatsNorm;
     StatRecent fFoodEatenEnd_200_100_StatsNorm; 
+	StatRecent fFoodEatenBegin_200_300_StatsNorm;       
+    StatRecent fFoodEatenBegin_300_400_StatsNorm;
+    StatRecent fFoodEatenEnd_300_200_StatsNorm;
+    StatRecent fFoodEatenEnd_400_300_StatsNorm;     
 
     
     Stat fQ1Stat;
